@@ -51,8 +51,6 @@ public class HomeController {
                 User user = userService.findUserById(post.getUserId());
                 map.put("user", user);
 
-                System.out.println(user);
-
                 discussPosts.add(map);
             }
         }
