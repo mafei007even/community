@@ -5,10 +5,14 @@ import com.nowcoder.community.entity.User;
 import com.nowcoder.community.entity.dto.Page;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.utils.MailClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,16 +29,20 @@ public class HomeController {
 
     private DiscussPostService discussPostService;
     private UserService userService;
+    private MailClient mailClient;
+    private TemplateEngine templateEngine;
 
 
-    public HomeController(DiscussPostService discussPostService, UserService userService) {
+    public HomeController(DiscussPostService discussPostService, UserService userService, MailClient mailClient, TemplateEngine templateEngine) {
         this.discussPostService = discussPostService;
         this.userService = userService;
+        this.mailClient = mailClient;
+        this.templateEngine = templateEngine;
     }
 
 
     @GetMapping("index")
-    public String getIndexPage(Model model, Page page){
+    public String getIndexPage(Model model, Page page) {
 
         // 设置Page回显的数据
         page.setRows(discussPostService.findDiscussPostRows(0));
@@ -43,7 +51,7 @@ public class HomeController {
 
         List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit());
         List<Map<String, Object>> discussPosts = new ArrayList<>();
-        if (list != null){
+        if (list != null) {
             for (DiscussPost post : list) {
                 Map<String, Object> map = new HashMap<>();
 
@@ -54,14 +62,10 @@ public class HomeController {
                 discussPosts.add(map);
             }
         }
-         model.addAttribute("discussPosts", discussPosts);
+        model.addAttribute("discussPosts", discussPosts);
 
         return "index";
     }
 
-    @GetMapping("test")
-    public ResponseEntity<List<DiscussPost>> findByPage(){
-        return ResponseEntity.ok(discussPostService.findByPage());
-    }
 
 }
