@@ -200,17 +200,18 @@ public class UserService {
         }
 
         // 验证账号是否激活
-        if (user.getStatus() == 0){
+        if (user.getStatus() == 0) {
             map.put("usernameMsg", "账号未激活！");
             return map;
         }
 
-        // 生成登陆凭证，存到 redis
+        // 生成登陆凭证，存到 redis，并要返回给客户端 cookie 的
         String uuid = CodecUtils.generateUUID();
 
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.getId());
         userInfo.setUsername(user.getUsername());
+        userInfo.setHeaderUrl(user.getHeaderUrl());
 
         String json = JsonUtils.objectToJson(userInfo);
         redisTemplate.opsForValue().set("user_" + uuid, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
@@ -221,8 +222,16 @@ public class UserService {
         return map;
     }
 
-    public void logout(String ticket){
+    public void logout(String ticket) {
         redisTemplate.delete("user_" + ticket);
+    }
+
+    public UserInfo findUserInfo(String ticket) {
+        if (ticket == null) {
+            return null;
+        }
+        String json = redisTemplate.opsForValue().get("user_" + ticket);
+        return json == null ? null : JsonUtils.jsonToPojo(json, UserInfo.class);
     }
 
 }
