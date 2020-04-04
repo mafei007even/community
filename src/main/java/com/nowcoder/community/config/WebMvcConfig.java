@@ -1,8 +1,10 @@
 package com.nowcoder.community.config;
 
+import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -14,17 +16,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private LoginTicketInterceptor loginTicketInterceptor;
+    private LoginRequiredInterceptor loginRequiredInterceptor;
 
-    public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor) {
+    public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor, LoginRequiredInterceptor loginRequiredInterceptor) {
         this.loginTicketInterceptor = loginTicketInterceptor;
+        this.loginRequiredInterceptor = loginRequiredInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        // js css jpg SpringBoot已经帮我做好了映射，不用在 exclude
         registry.addInterceptor(loginTicketInterceptor)
-                .addPathPatterns("/**");
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
+
+        registry.addInterceptor(loginRequiredInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
     }
 

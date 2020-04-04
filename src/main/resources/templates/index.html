@@ -27,14 +27,14 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item ml-3 btn-group-vertical">
-                            <a class="nav-link" th:href="@{index}">首页</a>
+                            <a class="nav-link" th:href="@{/index}">首页</a>
                         </li>
                         <li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser != null}">
                             <a class="nav-link position-relative" href="site/letter.html">消息<span
                                     class="badge badge-danger">12</span></a>
                         </li>
                         <li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser == null}">
-                            <a class="nav-link" th:href="@{register}">注册</a>
+                            <a class="nav-link" th:href="@{/register}">注册</a>
                         </li>
                         <li class="nav-item ml-3 btn-group-vertical"  th:if="${loginUser == null}">
                             <a class="nav-link" th:href="@{/login}">登录</a>
@@ -42,12 +42,12 @@
                         <li class="nav-item ml-3 btn-group-vertical dropdown"  th:if="${loginUser != null}">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img th:src="|http://images.nowcoder.com${loginUser.headerUrl}|" class="rounded-circle"
+                                <img th:src="|${#strings.startsWith(loginUser.headerUrl, 'http://') ? loginUser.headerUrl : 'http://images.nowcoder.com' + loginUser.headerUrl}|" class="rounded-circle"
                                      style="width:30px;"/>
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item text-center" href="site/profile.html">个人主页</a>
-                                <a class="dropdown-item text-center" href="site/setting.html">账号设置</a>
+                                <a class="dropdown-item text-center" th:href="@{/user/setting}">账号设置</a>
                                 <a class="dropdown-item text-center" th:href="@{/logout}">退出登录</a>
                                 <div class="dropdown-divider"></div>
                                 <span class="dropdown-item text-center text-secondary" th:utext="${loginUser.username}">nowcoder</span>
@@ -130,7 +130,7 @@
             <ul class="list-unstyled">
                 <li class="media pb-3 pt-3 mb-3 border-bottom" th:each="map : ${discussPosts}">
                     <a href="site/profile.html">
-                        <img th:src="|http://images.nowcoder.com${map.user.headerUrl}|" class="mr-4 rounded-circle" alt="用户头像"
+                        <img th:src="|${#strings.startsWith(map.user.headerUrl, 'http://') ? map.user.headerUrl : 'http://images.nowcoder.com' + map.user.headerUrl}|" class="mr-4 rounded-circle" alt="用户头像"
                              style="width:50px;height:50px;">
                     </a>
                     <div class="media-body">

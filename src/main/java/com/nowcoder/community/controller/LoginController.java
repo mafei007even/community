@@ -42,6 +42,7 @@ public class LoginController {
         this.redisTemplate = redisTemplate;
     }
 
+
     @GetMapping("register")
     public String getRegisterPage() {
         return "site/register";
@@ -51,6 +52,7 @@ public class LoginController {
     public String getLoginPage() {
         return "site/login";
     }
+
 
     @PostMapping("register")
     public String register(Model model, User user) {

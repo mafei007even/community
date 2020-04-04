@@ -213,13 +213,23 @@ public class UserService {
         userInfo.setUsername(user.getUsername());
         userInfo.setHeaderUrl(user.getHeaderUrl());
 
-        String json = JsonUtils.objectToJson(userInfo);
-        redisTemplate.opsForValue().set("user_" + uuid, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
+
+        saveUserInfo(userInfo, uuid, expiredTime);
 
         // 返回凭证
         map.put("ticket", uuid);
 
         return map;
+    }
+
+    public void saveUserInfo(UserInfo userInfo, String ticket, ExpiredTime expiredTime) {
+
+        String json = JsonUtils.objectToJson(userInfo);
+        if (expiredTime == null) {
+            redisTemplate.opsForValue().set("user_" + ticket, json);
+        } else{
+            redisTemplate.opsForValue().set("user_" + ticket, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
+        }
     }
 
     public void logout(String ticket) {
@@ -232,6 +242,16 @@ public class UserService {
         }
         String json = redisTemplate.opsForValue().get("user_" + ticket);
         return json == null ? null : JsonUtils.jsonToPojo(json, UserInfo.class);
+    }
+
+
+    public int updateHeader(Integer userId, String headerUrl) {
+
+        User user = new User();
+        user.setId(userId);
+        user.setHeaderUrl(headerUrl);
+
+        return userMapper.updateByPrimaryKeySelective(user);
     }
 
 }
