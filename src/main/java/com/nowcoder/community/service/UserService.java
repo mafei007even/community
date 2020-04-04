@@ -226,7 +226,8 @@ public class UserService {
 
         String json = JsonUtils.objectToJson(userInfo);
         if (expiredTime == null) {
-            redisTemplate.opsForValue().set("user_" + ticket, json);
+            // 解决 set 会覆盖过期时间问题，注意源值的长的要和新值的长度相等
+            redisTemplate.opsForValue().set("user_" + ticket, json, 0);
         } else{
             redisTemplate.opsForValue().set("user_" + ticket, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
         }
