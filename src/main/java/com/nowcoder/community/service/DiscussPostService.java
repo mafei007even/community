@@ -3,7 +3,10 @@ package com.nowcoder.community.service;
 import com.github.pagehelper.PageHelper;
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 
@@ -17,8 +20,11 @@ public class DiscussPostService {
 
     private DiscussPostMapper discussPostMapper;
 
-    public DiscussPostService(DiscussPostMapper discussPostMapper) {
+    private SensitiveFilter sensitiveFilter;
+
+    public DiscussPostService(DiscussPostMapper discussPostMapper, SensitiveFilter sensitiveFilter) {
         this.discussPostMapper = discussPostMapper;
+        this.sensitiveFilter = sensitiveFilter;
     }
 
 
@@ -35,6 +41,20 @@ public class DiscussPostService {
         PageHelper.startPage(2, 10);
         List<DiscussPost> discussPosts = discussPostMapper.selectAll();
         return discussPosts;
+    }
+
+    public int addDiscussPost(DiscussPost post){
+        Assert.notNull(post, "帖子不能为空！");
+
+        // 转义 避免攻击 <script>xxx</script>
+        post.setTitle(HtmlUtils.htmlEscape(post.getTitle()));
+        post.setContent(HtmlUtils.htmlEscape(post.getContent()));
+
+        // 过滤敏感词
+        post.setTitle(sensitiveFilter.filter(post.getTitle()));
+        post.setContent(sensitiveFilter.filter(post.getContent()));
+
+        return discussPostMapper.insertSelective(post);
     }
 
 }

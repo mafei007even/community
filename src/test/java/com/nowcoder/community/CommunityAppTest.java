@@ -30,4 +30,13 @@ public class CommunityAppTest implements ApplicationContextAware {
         System.out.println(applicationContext);
     }
 
+
+
+
+    @Test
+    public void test222(){
+
+
+    }
+
 }

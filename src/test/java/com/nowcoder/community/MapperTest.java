@@ -1,7 +1,9 @@
 package com.nowcoder.community;
 
 import com.nowcoder.community.dao.DiscussPostMapper;
-import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.model.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class MapperTest {
     @Autowired
     private DiscussPostMapper discussPostMapper;
 
+    @Autowired
+    private UserMapper userMapper;
+
 
     @Test
     public void testSelectPosts(){
@@ -34,6 +39,18 @@ public class MapperTest {
 
         Integer integer = discussPostMapper.selectDiscussPostRows(0);
         System.out.println(integer);
+    }
+
+
+    @Test
+    public void test22(){
+        // 验证
+        User user = new User();
+        user.setUsername("test");
+
+        User user1 = userMapper.selectOne(user);
+        System.out.println(user);
+        System.out.println(user1);
     }
 
 }
