@@ -1,4 +1,4 @@
-package com.nowcoder.community.entity;
+package com.nowcoder.community.model.entity;
 
 import lombok.Data;
 

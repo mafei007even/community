@@ -1,6 +1,6 @@
 package com.nowcoder.community.dao;
 
-import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.model.entity.DiscussPost;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;
 

@@ -1,4 +1,4 @@
-package com.nowcoder.community.utils;
+package com.nowcoder.community.model.support;
 
 /**
  * @author mafei007

@@ -1,10 +1,9 @@
 package com.nowcoder.community.controller.interceptor;
 
-import com.nowcoder.community.entity.pojo.UserInfo;
+import com.nowcoder.community.model.support.UserHolder;
+import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.CookieUtils;
-import com.nowcoder.community.utils.UserHolder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

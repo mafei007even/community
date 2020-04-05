@@ -1,10 +1,10 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
-import com.nowcoder.community.entity.pojo.UserInfo;
+import com.nowcoder.community.model.support.UserHolder;
+import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.CodecUtils;
-import com.nowcoder.community.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;

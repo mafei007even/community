@@ -2,7 +2,7 @@ package com.nowcoder.community.service;
 
 import com.github.pagehelper.PageHelper;
 import com.nowcoder.community.dao.DiscussPostMapper;
-import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.model.entity.DiscussPost;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

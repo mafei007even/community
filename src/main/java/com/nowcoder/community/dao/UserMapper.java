@@ -1,6 +1,6 @@
 package com.nowcoder.community.dao;
 
-import com.nowcoder.community.entity.User;
+import com.nowcoder.community.model.entity.User;
 import tk.mybatis.mapper.common.Mapper;
 
 /**

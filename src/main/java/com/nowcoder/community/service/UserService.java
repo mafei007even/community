@@ -1,11 +1,11 @@
 package com.nowcoder.community.service;
 
 import com.google.code.kaptcha.Producer;
-import com.nowcoder.community.constants.ActivationStatus;
-import com.nowcoder.community.constants.ExpiredTime;
+import com.nowcoder.community.model.enums.ActivationStatus;
+import com.nowcoder.community.model.enums.ExpiredTime;
 import com.nowcoder.community.dao.UserMapper;
-import com.nowcoder.community.entity.User;
-import com.nowcoder.community.entity.pojo.UserInfo;
+import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.utils.CodecUtils;
 import com.nowcoder.community.utils.JsonUtils;
 import com.nowcoder.community.utils.MailClient;

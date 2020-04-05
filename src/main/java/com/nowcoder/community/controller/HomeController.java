@@ -1,18 +1,15 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.entity.DiscussPost;
-import com.nowcoder.community.entity.User;
-import com.nowcoder.community.entity.dto.Page;
+import com.nowcoder.community.model.dto.Page;
+import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.MailClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,5 @@
-package com.nowcoder.community.entity.dto;
+package com.nowcoder.community.model.dto;
+
 
 /**
  * 封装分页相关信息
@@ -6,7 +7,6 @@ package com.nowcoder.community.entity.dto;
  * @author mafei007
  * @date 2020/3/30 22:35
  */
-
 
 public class Page {
 

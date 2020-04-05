@@ -1,4 +1,4 @@
-package com.nowcoder.community.constants;
+package com.nowcoder.community.model.enums;
 
 import java.util.concurrent.TimeUnit;
 

@@ -1,8 +1,8 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.constants.ActivationStatus;
-import com.nowcoder.community.constants.ExpiredTime;
-import com.nowcoder.community.entity.User;
+import com.nowcoder.community.model.enums.ActivationStatus;
+import com.nowcoder.community.model.enums.ExpiredTime;
+import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

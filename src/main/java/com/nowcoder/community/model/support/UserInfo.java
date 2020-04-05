@@ -1,4 +1,5 @@
-package com.nowcoder.community.entity.pojo;
+package com.nowcoder.community.model.support;
+
 
 import lombok.Data;
 
