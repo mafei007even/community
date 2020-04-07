@@ -1,6 +1,8 @@
 package com.nowcoder.community.model.params;
 
 import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.model.enums.DiscussPostStatus;
+import com.nowcoder.community.model.enums.DiscussPostType;
 import com.nowcoder.community.model.support.UserHolder;
 import lombok.Data;
 
@@ -31,8 +33,8 @@ public class PostParam {
         post.setUserId(UserHolder.get().getId());
         post.setTitle(title);
         post.setContent(content);
-        post.setType(0);
-        post.setStatus(0);
+        post.setType(DiscussPostType.ORDINARY);
+        post.setStatus(DiscussPostStatus.NORMAL);
         post.setCreateTime(new Date());
         post.setCommentCount(0);
         post.setScore(0d);

@@ -1,10 +1,11 @@
 package com.nowcoder.community.service;
 
 import com.google.code.kaptcha.Producer;
-import com.nowcoder.community.model.enums.ActivationStatus;
+import com.nowcoder.community.model.enums.UserActivationStatus;
 import com.nowcoder.community.model.enums.ExpiredTime;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.UserType;
 import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.utils.CodecUtils;
 import com.nowcoder.community.utils.JsonUtils;
@@ -91,8 +92,8 @@ public class UserService {
 
         user.setSalt(salt);
         user.setPassword(encryptedPw);
-        user.setStatus(0);
-        user.setType(0);
+        user.setStatus(UserActivationStatus.NOT_ACTIVED);
+        user.setType(UserType.ORDINARY);
         user.setActivationCode(CodecUtils.generateUUID());
 
         String urlTemplate = "/head/%dt.png";
@@ -132,26 +133,26 @@ public class UserService {
      * @param code
      * @return
      */
-    public ActivationStatus activation(int userId, String code) {
+    public UserActivationStatus activation(int userId, String code) {
         User user = userMapper.selectByPrimaryKey(userId);
 
         if (user == null) {
-            return ActivationStatus.FAILURE;
+            return UserActivationStatus.FAILURE;
         }
 
-        // status 为 1 代表已经激活
-        if (user.getStatus() == 1) {
-            return ActivationStatus.REPEAT;
+        // 是否已经激活
+        if (UserActivationStatus.ACTIVED.equals(user.getStatus())) {
+            return UserActivationStatus.REPEAT;
         }
 
         if (user.getActivationCode().equals(code)) {
             // 更新激活状态
-            user.setStatus(1);
+            user.setStatus(UserActivationStatus.ACTIVED);
             userMapper.updateByPrimaryKeySelective(user);
-            return ActivationStatus.SUCCESS;
+            return UserActivationStatus.ACTIVED;
         }
 
-        return ActivationStatus.FAILURE;
+        return UserActivationStatus.FAILURE;
     }
 
 
@@ -200,7 +201,7 @@ public class UserService {
         }
 
         // 验证账号是否激活
-        if (user.getStatus() == 0) {
+        if (UserActivationStatus.NOT_ACTIVED.equals(user.getStatus())) {
             map.put("usernameMsg", "账号未激活！");
             return map;
         }
@@ -228,7 +229,7 @@ public class UserService {
         if (expiredTime == null) {
             // 解决 set 会覆盖过期时间问题，注意源值的长的要和新值的长度相等
             redisTemplate.opsForValue().set("user_" + ticket, json, 0);
-        } else{
+        } else {
             redisTemplate.opsForValue().set("user_" + ticket, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
         }
     }

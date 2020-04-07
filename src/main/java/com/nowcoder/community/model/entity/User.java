@@ -1,5 +1,7 @@
 package com.nowcoder.community.model.entity;
 
+import com.nowcoder.community.model.enums.UserActivationStatus;
+import com.nowcoder.community.model.enums.UserType;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -16,8 +18,8 @@ public class User {
     private String password;
     private String salt;
     private String email;
-    private Integer type;
-    private Integer status;
+    private UserType type;
+    private UserActivationStatus status;
     private String activationCode;
     private String headerUrl;
     private Date createTime;

@@ -1,5 +1,7 @@
 package com.nowcoder.community.model.entity;
 
+import com.nowcoder.community.model.enums.DiscussPostStatus;
+import com.nowcoder.community.model.enums.DiscussPostType;
 import lombok.Data;
 
 import javax.persistence.GeneratedValue;
@@ -18,8 +20,8 @@ public class DiscussPost {
     private Integer userId;
     private String title;
     private String content;
-    private Integer type;
-    private Integer status;
+    private DiscussPostType type;
+    private DiscussPostStatus status;
     private Date createTime;
     private Integer commentCount;
     private Double score;

@@ -57,4 +57,8 @@ public class DiscussPostService {
         return discussPostMapper.insertSelective(post);
     }
 
+    public DiscussPost findDiscussPostById(Integer postId) {
+        DiscussPost post = discussPostMapper.selectByPrimaryKey(postId);
+        return post;
+    }
 }

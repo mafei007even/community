@@ -1,6 +1,6 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.model.enums.ActivationStatus;
+import com.nowcoder.community.model.enums.UserActivationStatus;
 import com.nowcoder.community.model.enums.ExpiredTime;
 import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.service.UserService;
@@ -80,10 +80,10 @@ public class LoginController {
                              @PathVariable("userId") int userId,
                              @PathVariable("code") String code) {
 
-        ActivationStatus activationStatus = userService.activation(userId, code);
+        UserActivationStatus userActivationStatus = userService.activation(userId, code);
 
-        switch (activationStatus) {
-            case SUCCESS:
+        switch (userActivationStatus) {
+            case ACTIVED:
                 model.addAttribute("msg", "激活成功，您的账号可以正常使用了！");
                 model.addAttribute("target", "/login");
                 break;
