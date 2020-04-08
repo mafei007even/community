@@ -3,10 +3,12 @@ package com.nowcoder.community.service;
 import com.github.pagehelper.PageHelper;
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.model.enums.DiscussPostStatus;
 import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.util.HtmlUtils;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
@@ -58,7 +60,12 @@ public class DiscussPostService {
     }
 
     public DiscussPost findDiscussPostById(Integer postId) {
-        DiscussPost post = discussPostMapper.selectByPrimaryKey(postId);
+        Example example = new Example(DiscussPost.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("id", postId);
+        criteria.andNotEqualTo("status", DiscussPostStatus.BLOCK);
+
+        DiscussPost post = discussPostMapper.selectOneByExample(example);
         return post;
     }
 }
