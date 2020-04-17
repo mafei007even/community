@@ -6,7 +6,7 @@ import com.nowcoder.community.model.enums.DiscussPostType;
 import com.nowcoder.community.model.support.UserHolder;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
@@ -18,12 +18,12 @@ import java.util.Date;
 @Data
 public class PostParam {
 
-    @NotEmpty(message = "帖子标题不能为空")
+    @NotBlank(message = "帖子标题不能为空")
     @Size(max = 100, message = "帖子标题字符长度不能超过{max}")
     private String title;
 
 
-    @NotEmpty(message = "帖子内容不能为空")
+    @NotBlank(message = "帖子内容不能为空")
     private String content;
 
 

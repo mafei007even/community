@@ -68,4 +68,13 @@ public class DiscussPostService {
         DiscussPost post = discussPostMapper.selectOneByExample(example);
         return post;
     }
+
+
+    public int updateCommentCount(Integer id, Integer commentCount){
+        DiscussPost post = new DiscussPost();
+        post.setId(id);
+        post.setCommentCount(commentCount);
+        return discussPostMapper.updateByPrimaryKeySelective(post);
+    }
+
 }

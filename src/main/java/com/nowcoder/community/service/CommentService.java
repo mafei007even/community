@@ -5,7 +5,14 @@ import com.nowcoder.community.dao.CommentMapper;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.Comment;
 import com.nowcoder.community.model.enums.CommentEntityType;
+import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.web.util.HtmlUtils;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
@@ -19,8 +26,14 @@ public class CommentService {
 
     private CommentMapper commentMapper;
 
-    public CommentService(CommentMapper commentMapper) {
+    private SensitiveFilter sensitiveFilter;
+
+    private DiscussPostService discussPostService;
+
+    public CommentService(CommentMapper commentMapper, SensitiveFilter sensitiveFilter, DiscussPostService discussPostService) {
         this.commentMapper = commentMapper;
+        this.sensitiveFilter = sensitiveFilter;
+        this.discussPostService = discussPostService;
     }
 
 
@@ -41,6 +54,34 @@ public class CommentService {
             PageHelper.startPage(page.getCurrent(), page.getLimit(), false);
         }
         return commentMapper.findCommentsByEntity(entityType, entityId);
+    }
+
+
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public int addComment(Comment comment){
+
+        Assert.notNull(comment, "参数不能为null");
+
+        // 过滤敏感词
+        comment.setContent(HtmlUtils.htmlEscape(comment.getContent()));
+        comment.setContent(sensitiveFilter.filter(comment.getContent()));
+
+        int rows = commentMapper.insertSelective(comment);
+
+        // 更新帖子评论数量
+        if (comment.getEntityType() == CommentEntityType.POST) {
+
+            // 查询数量
+            Example example = new Example(Comment.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo("entityType", comment.getEntityType());
+            criteria.andEqualTo("entityId", comment.getEntityId());
+            int count = commentMapper.selectCountByExample(example);
+            // 更新
+            discussPostService.updateCommentCount(comment.getEntityId(), count);
+        }
+
+        return rows;
     }
 
 }

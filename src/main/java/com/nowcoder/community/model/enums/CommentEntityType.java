@@ -36,4 +36,4 @@ public enum CommentEntityType implements ValueEnum<Integer> {
     }
 
 
-    }
+}

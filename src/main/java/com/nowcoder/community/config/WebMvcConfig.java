@@ -2,7 +2,9 @@ package com.nowcoder.community.config;
 
 import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
+import com.nowcoder.community.factory.StringToEnumConverterFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -34,4 +36,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     }
 
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverterFactory(new StringToEnumConverterFactory());
+    }
 }
