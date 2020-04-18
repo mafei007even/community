@@ -1,10 +1,12 @@
 package com.nowcoder.community.controller.advice;
 
+import com.nowcoder.community.exception.CommunityException;
 import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
@@ -51,6 +53,23 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    @ExceptionHandler(CommunityException.class)
+    public ResponseEntity<BaseResponse> handleCommunityException(CommunityException e) {
+        BaseResponse baseResponse = handleBaseException(e);
+        baseResponse.setStatus(e.getStatus().value());
+        baseResponse.setData(e.getErrorData());
+        return new ResponseEntity<>(baseResponse, e.getStatus());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public BaseResponse handleGlobalException(Exception e) {
+        BaseResponse baseResponse = handleBaseException(e);
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        baseResponse.setStatus(status.value());
+        baseResponse.setMessage(status.getReasonPhrase());
+        return baseResponse;
+    }
 
     private <T> BaseResponse<T> handleBaseException(Throwable t) {
         Assert.notNull(t, "Throwable must not be null");

@@ -256,4 +256,10 @@ public class UserService {
         return userMapper.updateByPrimaryKeySelective(user);
     }
 
+    public User findUserByUsername(String username){
+        User user = new User();
+        user.setUsername(username);
+        return userMapper.selectOne(user);
+    }
+
 }

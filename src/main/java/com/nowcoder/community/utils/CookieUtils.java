@@ -19,6 +19,9 @@ public class CookieUtils {
         Assert.notNull(request, "name参数不能为null");
 
         Cookie[] cookies = request.getCookies();
+        if (cookies == null){
+            return null;
+        }
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(name)) {
                 return cookie.getValue();
