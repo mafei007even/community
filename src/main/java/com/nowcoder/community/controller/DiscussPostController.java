@@ -23,9 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author mafei007
@@ -37,9 +35,9 @@ import java.util.Map;
 @Api("帖子相关接口")
 public class DiscussPostController {
 
-    private DiscussPostService discussPostService;
-    private UserService userService;
-    private CommentService commentService;
+    private final DiscussPostService discussPostService;
+    private final UserService userService;
+    private final CommentService commentService;
 
     public DiscussPostController(DiscussPostService discussPostService, UserService userService, CommentService commentService) {
         this.discussPostService = discussPostService;
@@ -77,7 +75,7 @@ public class DiscussPostController {
 
         DiscussPost post = discussPostService.findDiscussPostById(postId);
         if (post == null){
-            return "site/error/404";
+            return "error/404";
         }
 
         // 发帖者
