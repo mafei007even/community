@@ -37,7 +37,7 @@ public class ServiceLogAop {
 		String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 		String target = joinPoint.getSignature().getDeclaringType() + "." + joinPoint.getSignature().getName();
 
-		log.info(String.format("用户[%s],在[%s],访问了[%s].", ip, now, target));
+		log.debug(String.format("用户[%s],在[%s],访问了[%s].", ip, now, target));
 	}
 
 }

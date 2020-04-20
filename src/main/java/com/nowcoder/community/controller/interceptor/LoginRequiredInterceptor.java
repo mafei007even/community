@@ -1,7 +1,10 @@
 package com.nowcoder.community.controller.interceptor;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.model.support.UserHolder;
+import com.nowcoder.community.utils.JsonUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,22 +21,37 @@ import java.lang.reflect.Method;
 @Component
 public class LoginRequiredInterceptor implements HandlerInterceptor {
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        if (handler instanceof HandlerMethod) {
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
-            Method method = handlerMethod.getMethod();
+		if (handler instanceof HandlerMethod) {
+			HandlerMethod handlerMethod = (HandlerMethod) handler;
+			Method method = handlerMethod.getMethod();
 
-            // 判断 handler 是否 LoginRequired
-            LoginRequired loginRequired = method.getAnnotation(LoginRequired.class);
-            // 存在 LoginRequired 并且没有登陆
-            if (loginRequired != null && UserHolder.get() == null) {
-                response.sendRedirect(request.getContextPath() + "/login");
-                return false;
-            }
-        }
+			// 判断 handler 是否 LoginRequired
+			LoginRequired loginRequired = method.getAnnotation(LoginRequired.class);
+			// 存在 LoginRequired 并且没有登陆
+			if (loginRequired != null && UserHolder.get() == null) {
+				String loginUrl = request.getContextPath() + "/login";
 
-        return true;
-    }
+				// 判断是否 ajax 请求
+				String xRequestedWith = request.getHeader("x-requested-with");
+				if ("XMLHttpRequest".equalsIgnoreCase(xRequestedWith)) {
+					// ajax请求的话就响应 json
+					int code = HttpStatus.FORBIDDEN.value();
+					response.setStatus(code);
+					response.setContentType("application/json;charset=utf-8");
+					BaseResponse<String> resp = new BaseResponse<>(code, HttpStatus.FORBIDDEN.getReasonPhrase(), loginUrl);
+					String json = JsonUtils.objectToJson(resp);
+					response.getWriter().write(json);
+				} else {
+					// 其它请求方式就直接响应302重定向
+					response.sendRedirect(loginUrl);
+				}
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

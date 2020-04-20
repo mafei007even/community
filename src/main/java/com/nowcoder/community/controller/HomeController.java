@@ -3,7 +3,9 @@ package com.nowcoder.community.controller;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.CommentEntityType;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.MailClient;
 import org.springframework.stereotype.Controller;
@@ -24,14 +26,16 @@ import java.util.Map;
 @Controller
 public class HomeController {
 
-    private DiscussPostService discussPostService;
-    private UserService userService;
-    private MailClient mailClient;
-    private TemplateEngine templateEngine;
+    private final DiscussPostService discussPostService;
+    private final LikeService likeService;
+    private final UserService userService;
+    private final MailClient mailClient;
+    private final TemplateEngine templateEngine;
 
 
-    public HomeController(DiscussPostService discussPostService, UserService userService, MailClient mailClient, TemplateEngine templateEngine) {
+    public HomeController(DiscussPostService discussPostService, LikeService likeService, UserService userService, MailClient mailClient, TemplateEngine templateEngine) {
         this.discussPostService = discussPostService;
+        this.likeService = likeService;
         this.userService = userService;
         this.mailClient = mailClient;
         this.templateEngine = templateEngine;
@@ -51,10 +55,14 @@ public class HomeController {
         if (list != null) {
             for (DiscussPost post : list) {
                 Map<String, Object> map = new HashMap<>();
-
+                // 帖子，帖子的评论数也在这里
                 map.put("post", post);
+                // 帖子的发帖者
                 User user = userService.findUserById(post.getUserId());
                 map.put("user", user);
+                // 帖子的点赞数
+                long likeCount = likeService.findEntityLikeCount(CommentEntityType.POST, post.getId());
+                map.put("likeCount", likeCount);
 
                 discussPosts.add(map);
             }

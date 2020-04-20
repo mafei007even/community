@@ -75,7 +75,7 @@
     <!-- console -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%boldCyan(%d) %highlight(%-5level) %green([%thread]) %boldMagenta(%logger) %yellow([%file:%line]) %cyan(%msg%n)</pattern>
             <charset>utf-8</charset>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">

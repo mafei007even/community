@@ -30,6 +30,14 @@ function send_letter() {
             }
         }, 2000);
     }).fail(function (data) {
+        // 是否登陆
+        if (data.responseJSON.status === 403) {
+            let goLogin = confirm("您还没有登陆，不能发送私信！是否现在登陆？");
+            if (goLogin === true){
+                location.href = data.responseJSON.data;
+            }
+            return;
+        }
         // 在提示框中显示返回的消息
         let errors;
         if (data.responseJSON.data != null) {
@@ -50,6 +58,5 @@ function send_letter() {
 }
 
 function delete_msg() {
-    // TODO 删除数据
     $(this).parents(".media").remove();
 }

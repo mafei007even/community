@@ -2,6 +2,7 @@ package com.nowcoder.community.model.vo;
 
 import com.nowcoder.community.model.entity.Comment;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.LikeStatus;
 import lombok.Data;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class CommentVO {
 
     private Comment comment;
     private User user;
+    private long likeCount;
+    private LikeStatus likeStatus;
     private List<ReplyVO> replys;
     private Integer replyCount;
 

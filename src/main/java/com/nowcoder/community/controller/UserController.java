@@ -47,14 +47,10 @@ public class UserController {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private StringRedisTemplate redisTemplate;
-
     private static final List<String> CONTENT_TYPES = Arrays.asList("image/jpeg", "image/gif");
 
-
-    public UserController(UserService userService, StringRedisTemplate redisTemplate) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.redisTemplate = redisTemplate;
     }
 
     @LoginRequired

@@ -14,12 +14,12 @@ package com.nowcoder.community.model.enums;
 public enum CommentEntityType implements ValueEnum<Integer> {
 
     /**
-     * 帖子的评论
+     * 代表直接对帖子进行评论操作或点赞操作
      */
     POST(1),
 
     /**
-     * 评论的评论
+     * 代表对帖子下的评论进行评论操作或点赞操作
      */
     COMMENT(2);
 
