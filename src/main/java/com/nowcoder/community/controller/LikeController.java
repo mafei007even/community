@@ -29,11 +29,11 @@ public class LikeController {
 	@LoginRequired
 	@PostMapping("like")
 	@ResponseBody
-	public BaseResponse<LikeDTO> like(CommentEntityType entityType, Integer entityId) {
+	public BaseResponse<LikeDTO> like(CommentEntityType entityType, Integer entityId, Integer entityUserId) {
 		UserInfo userInfo = UserHolder.get();
 
 		// 点赞
-		likeService.like(userInfo.getId(), entityType, entityId);
+		likeService.like(userInfo.getId(), entityType, entityId, entityUserId);
 		// 数量
 		long likeCount = likeService.findEntityLikeCount(entityType, entityId);
 		// 当前用户点赞状态

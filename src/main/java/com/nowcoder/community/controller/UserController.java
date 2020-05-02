@@ -1,14 +1,15 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.CodecUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,8 @@ import java.util.List;
 @Slf4j
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
+    private final LikeService likeService;
 
     @Value("${community.path.upload}")
     private String uploadPath;
@@ -49,8 +51,9 @@ public class UserController {
 
     private static final List<String> CONTENT_TYPES = Arrays.asList("image/jpeg", "image/gif");
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, LikeService likeService) {
         this.userService = userService;
+        this.likeService = likeService;
     }
 
     @LoginRequired
@@ -132,6 +135,30 @@ public class UserController {
             log.error("读取本地头像失败：" + e.getMessage(), e);
         }
 
+    }
+
+    /**
+     * 查看用户的信息
+     * 所有人无论有没有登陆都可以访问
+     * @param userId
+     * @param model
+     * @return
+     */
+    @GetMapping("profile/{userId}")
+    public String getProfilePage(@PathVariable Integer userId, Model model){
+        User user = userService.findUserById(userId);
+        if (user == null){
+            // throw new NotFoundException("用户不存在");
+            return "error/404";
+        }
+        // 被赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+
+
+        // 用户
+        model.addAttribute("user", user);
+        model.addAttribute("likeCount", likeCount);
+        return "site/profile";
     }
 
 

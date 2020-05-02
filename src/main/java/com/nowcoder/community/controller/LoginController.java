@@ -3,6 +3,8 @@ package com.nowcoder.community.controller;
 import com.nowcoder.community.model.enums.UserActivationStatus;
 import com.nowcoder.community.model.enums.ExpiredTime;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.support.UserHolder;
+import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +52,11 @@ public class LoginController {
 
     @GetMapping("login")
     public String getLoginPage() {
+        // 已经登陆的就重定向到主页
+        UserInfo userInfo = UserHolder.get();
+        if (userInfo != null){
+            return "redirect:index";
+        }
         return "site/login";
     }
 

@@ -16,6 +16,7 @@ public class RedisKeyUtils {
 	 */
 	private static final String SPLIT = ":";
 	private static final String PREFIX_ENTITY_LIKE = "like:entity";
+	private static final String PREFIX_USER_LIKE = "like:user";
 
 	/**
 	 *
@@ -36,6 +37,19 @@ public class RedisKeyUtils {
 		Assert.notNull(entityType, "点赞的实体类型不能为空");
 		Assert.notNull(entityId, "点赞的实体id不能为空");
 		return PREFIX_ENTITY_LIKE + SPLIT + entityType.getValue() + SPLIT + entityId;
+	}
+
+	/**
+	 * 某个用户的赞，是被赞的那个 userId
+	 *
+	 * like:user:userId -> int
+	 * 存的就是一个数
+	 *
+	 * @param userId
+	 * @return
+	 */
+	public static String getUserLikeKey(Integer userId){
+		return PREFIX_USER_LIKE + SPLIT + userId;
 	}
 
 }

@@ -1,10 +1,10 @@
-function like(btn, entityType, entityId) {
+function like(btn, entityType, entityId, entityUserId) {
 
     $.ajax({
         url: CONTEXT_PATH + "/like",
         type: "post",
         dataType: 'json',
-        data: {"entityType": entityType, "entityId": entityId}
+        data: {"entityType": entityType, "entityId": entityId, "entityUserId": entityUserId}
     }).done(function (data) {
         // 改变dom： 赞还是已赞，点赞数
         $(btn).children("i").text(data.data.likeCount);
@@ -21,4 +21,8 @@ function like(btn, entityType, entityId) {
         alert(data.responseJSON.message);
     })
 
+}
+
+function goProfile(userId){
+    location.href = CONTEXT_PATH + "/profile/" + userId;
 }
