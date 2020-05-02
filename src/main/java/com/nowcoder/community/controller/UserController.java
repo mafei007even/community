@@ -2,8 +2,10 @@ package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.CommentEntityType;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
+import com.nowcoder.community.service.FollowService;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.CodecUtils;
@@ -39,6 +41,7 @@ public class UserController {
 
     private final UserService userService;
     private final LikeService likeService;
+    private final FollowService followService;
 
     @Value("${community.path.upload}")
     private String uploadPath;
@@ -51,9 +54,10 @@ public class UserController {
 
     private static final List<String> CONTENT_TYPES = Arrays.asList("image/jpeg", "image/gif");
 
-    public UserController(UserService userService, LikeService likeService) {
+    public UserController(UserService userService, LikeService likeService, FollowService followService) {
         this.userService = userService;
         this.likeService = likeService;
+        this.followService = followService;
     }
 
     @LoginRequired
@@ -154,10 +158,25 @@ public class UserController {
         // 被赞数量
         int likeCount = likeService.findUserLikeCount(userId);
 
+        // 这个用户关注别人的数量
+        long followeeCount = followService.findFolloweeCount(userId, CommentEntityType.USER);
+
+        // 粉丝数量
+        long followerCount = followService.findFollowerCount(CommentEntityType.USER, userId);
+
+        // 当前用户对这个用户有没有关注，没有登陆的话就是没关注
+        boolean hasFollowed = false;
+        UserInfo userInfo = UserHolder.get();
+        if (userInfo != null){
+            hasFollowed = followService.hasFollowed(userInfo.getId(), CommentEntityType.USER, userId);
+        }
 
         // 用户
         model.addAttribute("user", user);
         model.addAttribute("likeCount", likeCount);
+        model.addAttribute("followeeCount", followeeCount);
+        model.addAttribute("followerCount", followerCount);
+        model.addAttribute("hasFollowed", hasFollowed);
         return "site/profile";
     }
 
