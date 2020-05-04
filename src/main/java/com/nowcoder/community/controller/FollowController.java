@@ -68,7 +68,7 @@ public class FollowController {
 
 		// 设置分页数据
 		page.setLimit(5);
-		page.setPath("followees/" + userId);
+		page.setPath("/followees/" + userId);
 		page.setRows((int) followService.findFolloweeCount(userId, CommentEntityType.USER));
 
 		List<Followee> followees = followService.findFollowees(userId, page.getOffset(), page.getLimit());
@@ -95,7 +95,7 @@ public class FollowController {
 
 		// 设置分页数据
 		page.setLimit(5);
-		page.setPath("followers/" + userId);
+		page.setPath("/followers/" + userId);
 		page.setRows((int) followService.findFollowerCount(CommentEntityType.USER, userId));
 
 		List<Follower> followers = followService.findFollowers(userId, page.getOffset(), page.getLimit());

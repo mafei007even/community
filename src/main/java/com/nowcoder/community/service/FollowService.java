@@ -157,7 +157,7 @@ public class FollowService {
 					followee.setUser(user);
 					// 得到用户的关注时间
 					Double score = redisTemplate.opsForZSet().score(followeeKey, id);
-					followee.setFollowTime(new Date(score.longValue()));
+					followee.setFollowTime(score.longValue());
 					return followee;
 				})
 				.collect(Collectors.toList());
@@ -188,7 +188,7 @@ public class FollowService {
 					follower.setUser(user);
 					// 得到用户的关注时间
 					Double score = redisTemplate.opsForZSet().score(followerKey, id);
-					follower.setFollowTime(new Date(score.longValue()));
+					follower.setFollowTime(score.longValue());
 					return follower;
 				})
 				.collect(Collectors.toList());
