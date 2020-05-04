@@ -10,7 +10,7 @@ function follow() {
 			url: CONTEXT_PATH + "/follow",
 			type: 'post',
 			dataType: 'json',
-			data: {"entityType" : 3, 'entityId': $("#entityId").val()}
+			data: {"entityType" : 3, 'entityId': $(this).prev().val()}
 		}).done(function (data) {
 			window.location.reload();
 		}).fail(function (data) {
@@ -31,7 +31,7 @@ function follow() {
 			url: CONTEXT_PATH + "/unfollow",
 			type: 'post',
 			dataType: 'json',
-			data: {"entityType" : 3, 'entityId': $("#entityId").val()}
+			data: {"entityType" : 3, 'entityId': $(this).prev().val()}
 		}).done(function (data) {
 			window.location.reload();
 		}).fail(function (data) {
