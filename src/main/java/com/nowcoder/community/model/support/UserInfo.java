@@ -9,10 +9,19 @@ import lombok.Data;
 @Data
 public class UserInfo {
 
-    private Integer id;
+	private Integer id;
 
-    private String username;
+	private String username;
 
-    private String headerUrl;
+	private String headerUrl;
+
+	/**
+	 * 此对象是存放在 redis 中的用户登陆凭证
+	 * <p>
+	 * status 参数登陆后为 1 ，退出后为 0
+	 * <p>
+	 * 用户退出时不将登陆凭证从 redis 中删除，要留着来统计数据
+	 */
+	private Integer status;
 
 }

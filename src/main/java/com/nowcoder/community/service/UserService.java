@@ -10,6 +10,7 @@ import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.utils.CodecUtils;
 import com.nowcoder.community.utils.JsonUtils;
 import com.nowcoder.community.utils.MailClient;
+import com.nowcoder.community.utils.RedisKeyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,11 +34,11 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UserService {
 
-    private UserMapper userMapper;
-    private MailClient mailClient;
-    private TemplateEngine templateEngine;
-    private StringRedisTemplate redisTemplate;
-    private Producer kapchaProducer;
+    private final UserMapper userMapper;
+    private final MailClient mailClient;
+    private final TemplateEngine templateEngine;
+    private final StringRedisTemplate redisTemplate;
+    private final Producer kapchaProducer;
 
     @Value("${community.path.domain}")
     private String domain;
@@ -54,8 +55,12 @@ public class UserService {
     }
 
 
-    public User findUserById(Integer id) {
-        return userMapper.selectByPrimaryKey(id);
+    public User findUserById(Integer userId) {
+        User user = getUserCache(userId);
+        if (user == null) {
+            user = initUserCache(userId);
+        }
+        return user;
     }
 
 
@@ -149,6 +154,8 @@ public class UserService {
             // 更新激活状态
             user.setStatus(UserActivationStatus.ACTIVED);
             userMapper.updateByPrimaryKeySelective(user);
+            // 清除缓存
+            clearUserCache(userId);
             return UserActivationStatus.ACTIVED;
         }
 
@@ -160,7 +167,8 @@ public class UserService {
 
         String code = kapchaProducer.createText();
         // 存入 redis
-        redisTemplate.opsForValue().set("captcha_code_" + captchaId, code, 60, TimeUnit.SECONDS);
+        String captchaKey = RedisKeyUtils.getCaptchaKey(captchaId);
+        redisTemplate.opsForValue().set(captchaKey, code, 60, TimeUnit.SECONDS);
 
         BufferedImage image = kapchaProducer.createImage(code);
 
@@ -168,7 +176,7 @@ public class UserService {
     }
 
 
-    public Map<String, Object> login(String username, String password, ExpiredTime expiredTime) {
+    public Map<String, Object> login(String username, String password) {
         HashMap<String, Object> map = new HashMap<>();
 
         if (StringUtils.isBlank(username)) {
@@ -213,9 +221,9 @@ public class UserService {
         userInfo.setId(user.getId());
         userInfo.setUsername(user.getUsername());
         userInfo.setHeaderUrl(user.getHeaderUrl());
+        userInfo.setStatus(1);
 
-
-        saveUserInfo(userInfo, uuid, expiredTime);
+        saveUserInfo(userInfo, uuid);
 
         // 返回凭证
         map.put("ticket", uuid);
@@ -223,43 +231,96 @@ public class UserService {
         return map;
     }
 
-    public void saveUserInfo(UserInfo userInfo, String ticket, ExpiredTime expiredTime) {
-
+    /**
+     * 永久保存 redis 中的登陆凭证，要用于数据统计
+     * @param userInfo
+     * @param ticket
+     */
+    public void saveUserInfo(UserInfo userInfo, String ticket) {
         String json = JsonUtils.objectToJson(userInfo);
-        if (expiredTime == null) {
-            // 解决 set 会覆盖过期时间问题，注意源值的长的要和新值的长度相等
-            redisTemplate.opsForValue().set("user_" + ticket, json, 0);
-        } else {
-            redisTemplate.opsForValue().set("user_" + ticket, json, expiredTime.getTimeout(), expiredTime.getTimeUnit());
-        }
+        String ticketKey = RedisKeyUtils.getTicketKey(ticket);
+        redisTemplate.opsForValue().set(ticketKey, json);
     }
 
+    /**
+     * 退出时不删除 ticket，而是将 status 改为 0，
+     * 数据留着用于后续统计
+     * @param ticket
+     */
     public void logout(String ticket) {
-        redisTemplate.delete("user_" + ticket);
+        String ticketKey = RedisKeyUtils.getTicketKey(ticket);
+        String json = redisTemplate.opsForValue().get(ticketKey);
+        if (json == null){
+            return;
+        }
+        UserInfo userInfo = JsonUtils.jsonToPojo(json, UserInfo.class);
+        userInfo.setStatus(0);
+        // 没有指定过期时间的话会成为永久的 key
+        // 因为 ticket 使用 UUID, 不用担心 key 重复
+        redisTemplate.opsForValue().set(ticketKey, JsonUtils.objectToJson(userInfo));
     }
 
     public UserInfo findUserInfo(String ticket) {
         if (ticket == null) {
             return null;
         }
-        String json = redisTemplate.opsForValue().get("user_" + ticket);
+        String ticketKey = RedisKeyUtils.getTicketKey(ticket);
+        String json = redisTemplate.opsForValue().get(ticketKey);
         return json == null ? null : JsonUtils.jsonToPojo(json, UserInfo.class);
     }
 
 
     public int updateHeader(Integer userId, String headerUrl) {
-
         User user = new User();
         user.setId(userId);
         user.setHeaderUrl(headerUrl);
+        int rows = userMapper.updateByPrimaryKeySelective(user);
 
-        return userMapper.updateByPrimaryKeySelective(user);
+        // 清除缓存
+        clearUserCache(userId);
+        return rows;
     }
 
     public User findUserByUsername(String username){
         User user = new User();
         user.setUsername(username);
         return userMapper.selectOne(user);
+    }
+
+    /**
+     * 优先从缓存中取数据
+     * @param userId
+     * @return
+     */
+    private User getUserCache(Integer userId){
+        String userKey = RedisKeyUtils.getUserKey(userId);
+        String json = redisTemplate.opsForValue().get(userKey);
+        if (json == null){
+            return null;
+        }
+        return JsonUtils.jsonToPojo(json, User.class);
+    }
+
+    /**
+     * 缓存取不到时初始化缓存数据
+     * @param userId
+     * @return
+     */
+    private User initUserCache(Integer userId){
+        String userKey = RedisKeyUtils.getUserKey(userId);
+        User user = userMapper.selectByPrimaryKey(userId);
+        // 保存1个小时
+        redisTemplate.opsForValue().set(userKey, JsonUtils.objectToJson(user), 1, TimeUnit.HOURS);
+        return user;
+    }
+
+    /**
+     * 数据变更时清除缓存数据
+     * @param userId
+     */
+    private void clearUserCache(Integer userId){
+        String userKey = RedisKeyUtils.getUserKey(userId);
+        redisTemplate.delete(userKey);
     }
 
 }

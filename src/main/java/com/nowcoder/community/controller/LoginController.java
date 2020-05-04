@@ -6,6 +6,7 @@ import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.utils.RedisKeyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -131,15 +132,15 @@ public class LoginController {
                         Model model, HttpServletResponse response) {
 
         // 检查验证码
-        String keyInRedis = "captcha_code_" + captchaId;
-        String realCode = redisTemplate.opsForValue().get(keyInRedis);
+        String captchaKey = RedisKeyUtils.getCaptchaKey(captchaId);
+        String realCode = redisTemplate.opsForValue().get(captchaKey);
         if (realCode == null) {
             model.addAttribute("codeMsg", "验证码已过期！");
             return "site/login";
         }
 
         // 不管是否正确都删除redis 中的验证码
-        redisTemplate.delete(keyInRedis);
+        redisTemplate.delete(captchaKey);
 
         if (!StringUtils.equalsIgnoreCase(code, realCode)) {
             model.addAttribute("codeMsg", "验证码不正确！");
@@ -148,7 +149,7 @@ public class LoginController {
 
         // 验证账号密码
         ExpiredTime expiredTime = remeberMe ? ExpiredTime.REMEMBER_EXPIRED : ExpiredTime.DEFAULT_EXPIRED;
-        Map<String, Object> map = userService.login(username, password, expiredTime);
+        Map<String, Object> map = userService.login(username, password);
 
         if (map.containsKey("ticket")) {
 

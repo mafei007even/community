@@ -19,6 +19,9 @@ public class RedisKeyUtils {
 	private static final String PREFIX_USER_LIKE = "like:user";
 	private static final String PREFIX_FOLLOWEE = "followee";
 	private static final String PREFIX_FOLLOWER = "follower";
+	private static final String PREFIX_CAPTCHA = "captcha";
+	private static final String PREFIX_TICKET = "ticket";
+	private static final String PREFIX_USER = "user";
 
 	/**
 	 *
@@ -80,6 +83,24 @@ public class RedisKeyUtils {
 	 */
 	public static String getFollowerKey(CommentEntityType entityType, Integer entityId){
 		return PREFIX_FOLLOWER + SPLIT + entityType.getValue() + SPLIT + entityId;
+	}
+
+
+	public static String getCaptchaKey(String captchaId) {
+		return PREFIX_CAPTCHA + SPLIT + captchaId;
+	}
+
+	public static String getTicketKey(String ticket) {
+		return PREFIX_TICKET + SPLIT + ticket;
+	}
+
+	/**
+	 * User 对象的缓存
+	 * @param userId
+	 * @return
+	 */
+	public static String getUserKey(Integer userId) {
+		return PREFIX_USER + SPLIT + userId;
 	}
 
 }

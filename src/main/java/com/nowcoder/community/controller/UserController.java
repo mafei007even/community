@@ -116,7 +116,7 @@ public class UserController {
 
         // 更新 redis 缓存中的用户信息
         userInfo.setHeaderUrl(headerUrl);
-        userService.saveUserInfo(userInfo, ticket, null);
+        userService.saveUserInfo(userInfo, ticket);
 
 
         return "redirect:/index";
