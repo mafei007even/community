@@ -1,9 +1,12 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.model.enums.CommentEntityType;
+import com.nowcoder.community.model.enums.Topic;
+import com.nowcoder.community.model.event.Event;
 import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
@@ -30,10 +33,12 @@ public class FollowController {
 
 	private final FollowService followService;
 	private final UserService userService;
+	private final EventProducer eventProducer;
 
-	public FollowController(FollowService followService, UserService userService) {
+	public FollowController(FollowService followService, UserService userService, EventProducer eventProducer) {
 		this.followService = followService;
 		this.userService = userService;
+		this.eventProducer = eventProducer;
 	}
 
 	@LoginRequired
@@ -45,6 +50,21 @@ public class FollowController {
 			return new BaseResponse<>(400, "不能自己关注自己！", null);
 		}
 		followService.follow(userInfo.getId(), entityType, entityId);
+
+		// 触发关注事件
+		Event event = Event.builder()
+				.topic(Topic.Follow)
+				.userId(userInfo.getId())
+				.entityType(entityType)
+				.entityId(entityId)
+				// 现在功能只能关注用户，entityId 就是要通知的用户id
+				// 如果可以关注帖子，那entityId就是帖子id，还需要根据帖子id查到发帖者id，发帖者id才是要通知的userId
+				.entityUserId(entityId)
+				.build();
+
+		// 发送通知
+		eventProducer.fireEvent(event);
+
 		return BaseResponse.ok("已关注！");
 	}
 

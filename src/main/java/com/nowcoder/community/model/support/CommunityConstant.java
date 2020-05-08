@@ -8,6 +8,9 @@ package com.nowcoder.community.model.support;
 
 public interface CommunityConstant {
 
-
+	/**
+	 * 系统用户id
+	 */
+	int SYSTEM_USER_ID = 1;
 
 }

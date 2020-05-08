@@ -1,10 +1,10 @@
-function like(btn, entityType, entityId, entityUserId) {
+function like(btn, entityType, entityId, entityUserId, postId) {
 
     $.ajax({
         url: CONTEXT_PATH + "/like",
         type: "post",
         dataType: 'json',
-        data: {"entityType": entityType, "entityId": entityId, "entityUserId": entityUserId}
+        data: {"entityType": entityType, "entityId": entityId, "entityUserId": entityUserId, "postId": postId}
     }).done(function (data) {
         // 改变dom： 赞还是已赞，点赞数
         $(btn).children("i").text(data.data.likeCount);

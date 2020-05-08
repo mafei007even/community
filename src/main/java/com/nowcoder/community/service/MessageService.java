@@ -5,6 +5,7 @@ import com.nowcoder.community.dao.MessageMapper;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.Message;
 import com.nowcoder.community.model.enums.MessageStatus;
+import com.nowcoder.community.model.enums.Topic;
 import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -80,6 +81,72 @@ public class MessageService {
 			return 0;
 		}
 		return messageMapper.updateStatus(ids, MessageStatus.READED);
+	}
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）下最新的一条通知
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	public Message findLatestNotice(Integer userId, Topic topic) {
+		Assert.notNull(userId, "要查询通知的 userId 不能为空");
+		Assert.notNull(topic, "要查询通知的 topic 不能为空");
+		return messageMapper.selectLatestNotice(userId, topic);
+	}
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）下的总通知数量
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	public int findNoticeCount(Integer userId, Topic topic) {
+		Assert.notNull(userId, "要查询通知的 userId 不能为空");
+		Assert.notNull(topic, "要查询通知的 topic 不能为空");
+		return messageMapper.selectNoticeCount(userId, topic);
+	}
+
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）未读通知的数量
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	public int findNoticeUnreadCount(Integer userId, Topic topic) {
+		Assert.notNull(userId, "要查询通知的 userId 不能为空");
+		Assert.notNull(topic, "要查询通知的 topic 不能为空");
+		return messageMapper.selectNoticeUnreadCount(userId, topic);
+	}
+
+	/**
+	 * 查询用户所有系统通知（点赞、评论、关注）未读通知的总数量
+	 *
+	 * @param userId
+	 * @return
+	 */
+	public int findAllNoticeUnreadCount(Integer userId) {
+		Assert.notNull(userId, "要查询通知的 userId 不能为空");
+		return messageMapper.selectAllNoticeUnreadCount(userId);
+	}
+
+	/**
+	 * 分页查询用户某个系统通知（点赞、评论、关注）的列表
+	 * @param userId
+	 * @param topic
+	 * @param page
+	 * @return
+	 */
+	public List<Message> findNotices(Integer userId, Topic topic, Page page) {
+		Assert.notNull(userId, "要查询通知的 userId 不能为空");
+		Assert.notNull(topic, "要查询通知的 topic 不能为空");
+		Assert.notNull(page, "分页参数不能为空");
+		PageHelper.startPage(page.getCurrent(), page.getLimit());
+		return messageMapper.selectNotices(userId, topic);
 	}
 
 }

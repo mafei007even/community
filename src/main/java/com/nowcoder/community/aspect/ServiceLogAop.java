@@ -29,9 +29,19 @@ public class ServiceLogAop {
 	}
 
 	@Before("service()")
-	public void before(JoinPoint joinPoint){
+	public void before(JoinPoint joinPoint) {
 		// 用户[47.103.83.12],在[xxx],访问了[com.nowcoder.community.service.xxx()].
 		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+		// 没有 kafka 前，service都是由 controller 调用的，是肯定存在 request 请求的
+		// 现在消费者中调用了 service，没有经过 http request，所以这里会有空指针
+		if (requestAttributes == null) {
+			// 如果是 kafka 调用 service，就不记录 ip 了
+			String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			String target = joinPoint.getSignature().getDeclaringType() + "." + joinPoint.getSignature().getName();
+			log.debug(String.format("kafka消费者,在[%s],访问了[%s].", now, target));
+			return;
+		}
 		HttpServletRequest request = Objects.requireNonNull(requestAttributes).getRequest();
 		String ip = request.getRemoteHost();
 		String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());

@@ -2,6 +2,7 @@ package com.nowcoder.community.config;
 
 import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
+import com.nowcoder.community.controller.interceptor.MessageCountInterceptor;
 import com.nowcoder.community.factory.StringToEnumConverterFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -16,12 +17,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-	private LoginTicketInterceptor loginTicketInterceptor;
-	private LoginRequiredInterceptor loginRequiredInterceptor;
+	private final LoginTicketInterceptor loginTicketInterceptor;
+	private final LoginRequiredInterceptor loginRequiredInterceptor;
+	private final MessageCountInterceptor messageCountInterceptor;
 
-	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor, LoginRequiredInterceptor loginRequiredInterceptor) {
+	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor, LoginRequiredInterceptor loginRequiredInterceptor, MessageCountInterceptor messageCountInterceptor) {
 		this.loginTicketInterceptor = loginTicketInterceptor;
 		this.loginRequiredInterceptor = loginRequiredInterceptor;
+		this.messageCountInterceptor = messageCountInterceptor;
 	}
 
 	@Override
@@ -31,6 +34,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
 		registry.addInterceptor(loginRequiredInterceptor)
+				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
+
+		registry.addInterceptor(messageCountInterceptor)
 				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
 	}

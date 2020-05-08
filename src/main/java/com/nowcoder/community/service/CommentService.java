@@ -84,4 +84,8 @@ public class CommentService {
         return rows;
     }
 
+    public Comment findCommentById(Integer id) {
+        return commentMapper.selectByPrimaryKey(id);
+    }
+
 }

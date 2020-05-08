@@ -2,6 +2,7 @@ package com.nowcoder.community.dao;
 
 import com.nowcoder.community.model.entity.Message;
 import com.nowcoder.community.model.enums.MessageStatus;
+import com.nowcoder.community.model.enums.Topic;
 import org.apache.ibatis.annotations.Select;
 import tk.mybatis.mapper.common.Mapper;
 
@@ -145,5 +146,82 @@ public interface MessageMapper extends Mapper<Message> {
 	 * @return
 	 */
 	int updateStatus(List<Integer> ids, MessageStatus status);
+
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）下最新的一条通知
+	 *
+	 * SELECT * FROM `message`
+	 * WHERE from_id = 1 and to_id = 112 AND conversation_id = 'like' AND `status` != 2
+	 * ORDER BY create_time desc
+	 * LIMIT 1
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	@Select("select * from message " +
+			"where from_id = 1 " +
+			"and to_id = #{userId} " +
+			"and conversation_id = #{topic} " +
+			"and status != 2 " +
+			"order by create_time desc " +
+			"limit 1")
+	Message selectLatestNotice(Integer userId, Topic topic);
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）下的总通知数量
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	@Select("select count(*) from message " +
+			"where from_id = 1 " +
+			"and to_id = #{userId} " +
+			"and conversation_id = #{topic} " +
+			"and status != 2 ")
+	int selectNoticeCount(Integer userId, Topic topic);
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）未读通知的数量
+	 *
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	@Select("select count(*) from message " +
+			"where from_id = 1 " +
+			"and to_id = #{userId} " +
+			"and conversation_id = #{topic} " +
+			"and status = 0 ")
+	int selectNoticeUnreadCount(Integer userId, Topic topic);
+
+	/**
+	 * 查询用户所有系统通知（点赞、评论、关注）未读通知的总数量
+	 * @param userId
+	 * @return
+	 */
+	@Select("select count(*) from message " +
+			"where from_id = 1 " +
+			"and to_id = #{userId} " +
+			"and status = 0 ")
+	int selectAllNoticeUnreadCount(Integer userId);
+
+
+	/**
+	 * 查询用户某个系统通知（点赞、评论、关注）的列表
+	 * 支持分页，在 service 中由 PageHelper 完成
+	 * @param userId
+	 * @param topic
+	 * @return
+	 */
+	@Select("select * from message " +
+			"where status != 2 " +
+			"and from_id = 1 " +
+			"and to_id = #{userId} " +
+			"and conversation_id = #{topic} " +
+			"order by create_time desc ")
+	List<Message> selectNotices(Integer userId, Topic topic);
 
 }

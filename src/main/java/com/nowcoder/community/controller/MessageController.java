@@ -6,28 +6,37 @@ import com.nowcoder.community.exception.NotFoundException;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.Message;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.CommentEntityType;
 import com.nowcoder.community.model.enums.MessageStatus;
+import com.nowcoder.community.model.enums.Topic;
+import com.nowcoder.community.model.enums.ValueEnum;
 import com.nowcoder.community.model.params.MessageParam;
 import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.model.vo.ConversationVo;
 import com.nowcoder.community.model.vo.LetterVo;
+import com.nowcoder.community.model.vo.MessageNoticeVO;
+import com.nowcoder.community.model.vo.NoticeForListVO;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.utils.JsonUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -91,10 +100,14 @@ public class MessageController {
 		}
 
 		// 总未读数量
-		int allUnreadCount = messageService.findLetterUnreadCount(userId, null);
+		int allLetterUnreadCount = messageService.findLetterUnreadCount(userId, null);
+
+		// 查询系统通知未读消息数量
+		int allNoticeUnreadCount = messageService.findAllNoticeUnreadCount(userId);
+		model.addAttribute("allNoticeUnreadCount", allNoticeUnreadCount);
 
 		model.addAttribute("page", page);
-		model.addAttribute("allUnreadCount", allUnreadCount);
+		model.addAttribute("allLetterUnreadCount", allLetterUnreadCount);
 		model.addAttribute("conversations", conversationVos);
 		return "site/letter";
 	}
@@ -183,6 +196,126 @@ public class MessageController {
 				.filter(id -> UserHolder.get().getId().toString().equals(id))
 				.findAny()
 				.orElseThrow(() -> new RuntimeException("没有权限访问非自己的消息！"));
+	}
+
+	@LoginRequired
+	@GetMapping("notice/list")
+	@ApiOperation("查询用户最新一条的（点赞、评论、关注）通知")
+	public String getNoticeList(Model model) {
+		UserInfo userInfo = UserHolder.get();
+		Integer userId = userInfo.getId();
+
+		// 查询评论类通知
+		MessageNoticeVO commentNoticeVO = getLatestMessageVo(userId, Topic.Comment);
+		model.addAttribute("commentNotice", commentNoticeVO);
+
+		// 查询点赞类通知
+		MessageNoticeVO likeNoticeVO = getLatestMessageVo(userId, Topic.Like);
+		model.addAttribute("likeNotice", likeNoticeVO);
+
+		// 查询关注类通知
+		MessageNoticeVO followNoticeVO = getLatestMessageVo(userId, Topic.Follow);
+		model.addAttribute("followNotice", followNoticeVO);
+
+		// 查询私信未读消息数量
+		int letterUnreadCount = messageService.findLetterUnreadCount(userId, null);
+		model.addAttribute("letterUnreadCount", letterUnreadCount);
+
+		// 查询系统通知未读消息数量
+		int allNoticeUnreadCount = messageService.findAllNoticeUnreadCount(userId);
+		model.addAttribute("allNoticeUnreadCount", allNoticeUnreadCount);
+
+		// 用户私信总未读数量
+		int allLetterUnreadCount = messageService.findLetterUnreadCount(userId, null);
+		model.addAttribute("allLetterUnreadCount", allLetterUnreadCount);
+
+		return "site/notice";
+	}
+
+	/**
+	 * 查询用户不同类型的最新一条通知
+	 * @param userId
+	 * @param topic 点赞、评论、关注
+	 * @return
+	 */
+	private MessageNoticeVO getLatestMessageVo(Integer userId, Topic topic) {
+		Message latestTopicNotice = messageService.findLatestNotice(userId, topic);
+		// message vo
+		MessageNoticeVO noticeVO = new MessageNoticeVO();
+		if (latestTopicNotice != null) {
+			noticeVO.setMessage(latestTopicNotice);
+
+			String jsonContent = HtmlUtils.htmlUnescape(latestTopicNotice.getContent());
+			Map<String, Object> content = JsonUtils.jsonToMap(jsonContent, String.class, Object.class);
+
+			noticeVO.setUser(userService.findUserById((Integer) content.get("userId")));
+
+			CommentEntityType entityType = ValueEnum.valueToEnum(CommentEntityType.class, (Integer) content.get("entityType"));
+			noticeVO.setEntityType(entityType);
+			noticeVO.setEntityId((Integer) content.get("entityId"));
+
+
+			int count = messageService.findNoticeCount(userId, topic);
+			noticeVO.setCount(count);
+
+			int unread = messageService.findNoticeUnreadCount(userId, topic);
+			noticeVO.setUnread(unread);
+
+			// 关注类通知不需要 postId 参数
+			if (topic != Topic.Follow) {
+				noticeVO.setPostId((Integer) content.get("postId"));
+			}
+		}
+		return noticeVO;
+	}
+
+	@LoginRequired
+	@GetMapping("notice/detail/{topic}")
+	public String getNoticeDetail(@PathVariable Topic topic, Page page, Model model) {
+		UserInfo userInfo = UserHolder.get();
+
+		page.setLimit(5);
+		page.setPath("/notice/detail/" + topic.getValue());
+
+		List<Message> notices = messageService.findNotices(userInfo.getId(), topic, page);
+		// 使用 PageHelper 来获取分页信息，总行数
+		PageInfo<Message> pageInfo = new PageInfo<>(notices);
+		page.setRows((int) pageInfo.getTotal());
+
+		List<NoticeForListVO> noticeVoList = notices.stream()
+				.map(notice -> {
+					NoticeForListVO noticeVo = new NoticeForListVO();
+					noticeVo.setNotice(notice);
+
+					String jsonContent = HtmlUtils.htmlUnescape(notice.getContent());
+					Map<String, Object> content = JsonUtils.jsonToMap(jsonContent, String.class, Object.class);
+
+					noticeVo.setUser(userService.findUserById((Integer) content.get("userId")));
+
+					CommentEntityType entityType = ValueEnum.valueToEnum(CommentEntityType.class, (Integer) content.get("entityType"));
+					noticeVo.setEntityType(entityType);
+					noticeVo.setEntityId((Integer) content.get("entityId"));
+
+					// 关注类通知不需要 postId 参数
+					if (topic != Topic.Follow) {
+						noticeVo.setPostId((Integer) content.get("postId"));
+					}
+					// 通知者，就是 id 为 1 的系统管理员
+					noticeVo.setFromUser(userService.findUserById(notice.getFromId()));
+
+					return noticeVo;
+				}).collect(Collectors.toList());
+
+		model.addAttribute("notices", noticeVoList);
+		model.addAttribute("page", page);
+
+		// 设置已读
+		List<Integer> unreadIds = getUnreadLetterIds(notices);
+		if (!CollectionUtils.isEmpty(unreadIds)) {
+			messageService.readMessage(unreadIds);
+		}
+
+		return "site/notice-detail";
 	}
 
 }
