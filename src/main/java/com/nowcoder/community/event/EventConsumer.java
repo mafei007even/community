@@ -1,9 +1,13 @@
 package com.nowcoder.community.event;
 
+import com.nowcoder.community.elasticsearch.model.EsDiscussPost;
+import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.Message;
 import com.nowcoder.community.model.enums.MessageStatus;
 import com.nowcoder.community.model.event.Event;
 import com.nowcoder.community.model.support.CommunityConstant;
+import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.ElasticsearchService;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +30,19 @@ import java.util.Map;
 public class EventConsumer {
 
 	private final MessageService messageService;
+	private final DiscussPostService discussPostService;
+	private final ElasticsearchService elasticsearchService;
 
 	private final String COMMENT = "comment";
 	private final String LIKE = "like";
 	private final String FOLLOW = "follow";
+	private final String PUBLISH = "publish";
 
 
-	public EventConsumer(MessageService messageService) {
+	public EventConsumer(MessageService messageService, DiscussPostService discussPostService, ElasticsearchService elasticsearchService) {
 		this.messageService = messageService;
+		this.discussPostService = discussPostService;
+		this.elasticsearchService = elasticsearchService;
 	}
 
 	/**
@@ -73,6 +82,28 @@ public class EventConsumer {
 		message.setContent(JsonUtils.objectToJson(content));
 		// 保存到数据库
 		messageService.addMessage(message);
+	}
+
+	/**
+	 * 消费发帖事件，将贴子添加到 es 索引库
+	 * @param record
+	 */
+	@KafkaListener(topics = {PUBLISH})
+	public void hadlePublishMessage(ConsumerRecord record) {
+		if (record == null || record.value() == null) {
+			log.error("消息的内容为空");
+			return;
+		}
+
+		Event event = JsonUtils.jsonToPojo(record.value().toString(), Event.class);
+		if (event == null) {
+			log.error("消息格式错误！");
+			return;
+		}
+
+		DiscussPost post = discussPostService.findDiscussPostById(event.getEntityId());
+		EsDiscussPost esDiscussPost = EsDiscussPost.convertTo(post);
+		elasticsearchService.saveDiscussPost(esDiscussPost);
 	}
 
 }

@@ -14,16 +14,16 @@ import java.util.Date;
 @Table(name = "discuss_post")
 public class DiscussPost {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private Integer userId;
-    private String title;
-    private String content;
-    private DiscussPostType type;
-    private DiscussPostStatus status;
-    private Date createTime;
-    private Integer commentCount;
-    private Double score;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
+	private Integer userId;
+	private String title;
+	private String content;
+	private DiscussPostType type;
+	private DiscussPostStatus status;
+	private Date createTime;
+	private Integer commentCount;
+	private Double score;
 
 }

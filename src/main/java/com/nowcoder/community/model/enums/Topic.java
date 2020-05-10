@@ -23,7 +23,12 @@ public enum Topic implements ValueEnum<String> {
 	/**
 	 * 关注事件的 topic
 	 */
-	Follow("follow");
+	Follow("follow"),
+
+	/**
+	 * 发布帖子
+	 */
+	Publish("publish");
 
 	private final String value;
 

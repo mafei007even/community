@@ -2,6 +2,7 @@ package com.nowcoder.community;
 
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.elasticsearch.model.EsDiscussPost;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.User;
 import org.junit.Test;
@@ -51,6 +52,16 @@ public class MapperTest {
         User user1 = userMapper.selectOne(user);
         System.out.println(user);
         System.out.println(user1);
+    }
+
+    @Test
+    public void testBeanUtil(){
+        DiscussPost discussPost = discussPostMapper.selectByPrimaryKey(239);
+        EsDiscussPost esDiscussPost = EsDiscussPost.convertTo(discussPost);
+
+        System.out.println(discussPost);
+        System.out.println(esDiscussPost);
+
     }
 
 }

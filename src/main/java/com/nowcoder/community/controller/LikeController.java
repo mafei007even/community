@@ -72,6 +72,20 @@ public class LikeController {
 			eventProducer.fireEvent(event);
 		}
 
+
+		// 触发发帖事件，只有给帖子点赞或取消点赞才会触发
+		// 主要是为了更新索引库中帖子的点赞数量，让搜索出来的点赞数正常
+		if (entityType == CommentEntityType.POST) {
+			// 发帖事件没有 entityUserId 要通知的用户
+			Event postEvent = Event.builder()
+					.topic(Topic.Publish)
+					.userId(userInfo.getId())
+					.entityType(CommentEntityType.POST)
+					.entityId(postId)
+					.build();
+			eventProducer.fireEvent(postEvent);
+		}
+
 		return BaseResponse.ok(likeDTO);
 	}
 

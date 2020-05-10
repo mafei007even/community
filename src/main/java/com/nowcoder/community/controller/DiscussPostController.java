@@ -1,11 +1,14 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.Comment;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.model.enums.CommentEntityType;
 import com.nowcoder.community.model.enums.LikeStatus;
+import com.nowcoder.community.model.enums.Topic;
+import com.nowcoder.community.model.event.Event;
 import com.nowcoder.community.model.params.PostParam;
 import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.model.support.UserHolder;
@@ -41,12 +44,14 @@ public class DiscussPostController {
     private final UserService userService;
     private final CommentService commentService;
     private final LikeService likeService;
+    private final EventProducer eventProducer;
 
-    public DiscussPostController(DiscussPostService discussPostService, UserService userService, CommentService commentService, LikeService likeService) {
+    public DiscussPostController(DiscussPostService discussPostService, UserService userService, CommentService commentService, LikeService likeService, EventProducer eventProducer) {
         this.discussPostService = discussPostService;
         this.userService = userService;
         this.commentService = commentService;
         this.likeService = likeService;
+        this.eventProducer = eventProducer;
     }
 
     @PostMapping
@@ -61,6 +66,15 @@ public class DiscussPostController {
 
         DiscussPost post = postParam.convertTo();
         discussPostService.addDiscussPost(post);
+
+        // 触发发帖事件，发帖事件没有 entityUserId 要通知的用户
+        Event event = Event.builder()
+                .topic(Topic.Publish)
+                .userId(userInfo.getId())
+                .entityType(CommentEntityType.POST)
+                .entityId(post.getId())
+                .build();
+        eventProducer.fireEvent(event);
 
         return BaseResponse.ok("发布成功");
     }

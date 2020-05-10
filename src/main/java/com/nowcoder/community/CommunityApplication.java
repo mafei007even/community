@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import tk.mybatis.spring.annotation.MapperScan;
 
+import javax.annotation.PostConstruct;
+
 
 /**
  * @author mafei007
@@ -16,6 +18,13 @@ import tk.mybatis.spring.annotation.MapperScan;
 @EnableAsync
 public class CommunityApplication {
 
+    @PostConstruct
+    public void init(){
+        // es redis
+        // 解决 netty 启动冲突问题， 不设置会出错...
+        // @see Netty4Utils.setAvailableProcessors()
+        System.setProperty("es.set.netty.runtime.available.processors", "false");
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(CommunityApplication.class, args);

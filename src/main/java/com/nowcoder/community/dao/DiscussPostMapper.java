@@ -1,7 +1,9 @@
 package com.nowcoder.community.dao;
 
+import com.nowcoder.community.elasticsearch.model.EsDiscussPost;
 import com.nowcoder.community.model.entity.DiscussPost;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import tk.mybatis.mapper.common.Mapper;
 
 import java.util.List;
@@ -24,5 +26,11 @@ public interface DiscussPostMapper extends Mapper<DiscussPost> {
      */
     Integer selectDiscussPostRows(@Param("userId") Integer userId);
 
+    /**
+     * 封装为 es 用的实体对象
+     * @return
+     */
+    @Select("select * from discuss_post where status != 2")
+    List<EsDiscussPost> selectAllDiscussPostsForEs();
 
 }

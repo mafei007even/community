@@ -21,6 +21,7 @@ public class EventProducer {
 
 	/**
 	 * 点赞、评论、关注时发送消息，异步处理
+	 * 发帖时通知 es 建立索引
 	 * @param event
 	 */
 	public void fireEvent(Event event){

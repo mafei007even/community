@@ -83,6 +83,20 @@ public class CommentController {
 		// 发送消息
 		eventProducer.fireEvent(event);
 
+		// 触发发帖事件，只有是给帖子进行直接评论才触发
+		// 并没有在评论字段中进行搜索
+		// 主要是为了更新索引库中帖子的评论数量，让搜索出来的评论数正常
+		if (comment.getEntityType() == CommentEntityType.POST) {
+			// 触发发帖事件，发帖事件没有 entityUserId 要通知的用户
+			Event postEvent = Event.builder()
+					.topic(Topic.Publish)
+					.userId(UserHolder.get().getId())
+					.entityType(CommentEntityType.POST)
+					.entityId(discussPostId)
+					.build();
+			eventProducer.fireEvent(postEvent);
+		}
+
 		return "redirect:/discuss/" + discussPostId;
 	}
 
