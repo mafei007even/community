@@ -47,9 +47,9 @@ public class CommentController {
 
 		/**
 		 触发事件对应的用户，就是要通知的用户
-		 如果这个评论是直接给帖子进行评论，那要通知的就是发帖者
-		 如果这个评论是给评论进行直接评论，非在评论下进行回复，那通知的就是原评论者
-		 如果这个评论是给评论进行评论，且评论为回复，那通知的就是评论下的被回复者
+		 1. 如果这个评论是直接给帖子进行评论，那要通知的就是发帖者
+		 2. 如果这个评论是给评论进行直接评论，非在评论下进行回复，那通知的就是原评论者
+		 3. 如果这个评论是给评论进行评论，且评论为回复，那通知的就是评论下的被回复者
 		 */
 		Integer entityUserId = null;
 		switch (comment.getEntityType()) {
@@ -69,19 +69,22 @@ public class CommentController {
 			default:
 		}
 
-		// 触发评论事件
-		Event event = Event.builder()
-				.topic(Topic.Comment)
-				.userId(UserHolder.get().getId())
-				.entityType(comment.getEntityType())
-				.entityId(comment.getEntityId())
-				.entityUserId(entityUserId)
-				.build()
-				// postId可以让被评论者点开通知时可以链接到帖子详情页面
-				.setData("postId", discussPostId);
-
-		// 发送消息
-		eventProducer.fireEvent(event);
+		Integer userId = UserHolder.get().getId();
+		// 如果是对自己进行以上 3 种评论操作，那就不用再发通知自己通知自己了
+		if (!userId.equals(entityUserId)) {
+			// 触发评论事件
+			Event event = Event.builder()
+					.topic(Topic.Comment)
+					.userId(userId)
+					.entityType(comment.getEntityType())
+					.entityId(comment.getEntityId())
+					.entityUserId(entityUserId)
+					.build()
+					// postId可以让被评论者点开通知时可以链接到帖子详情页面
+					.setData("postId", discussPostId);
+			// 发送消息
+			eventProducer.fireEvent(event);
+		}
 
 		// 触发发帖事件，只有是给帖子进行直接评论才触发
 		// 并没有在评论字段中进行搜索
@@ -90,7 +93,7 @@ public class CommentController {
 			// 触发发帖事件，发帖事件没有 entityUserId 要通知的用户
 			Event postEvent = Event.builder()
 					.topic(Topic.Publish)
-					.userId(UserHolder.get().getId())
+					.userId(userId)
 					.entityType(CommentEntityType.POST)
 					.entityId(discussPostId)
 					.build();

@@ -57,8 +57,8 @@ public class LikeController {
 		likeDTO.setLikeCount(likeCount);
 		likeDTO.setLikeStatus(likeStatus);
 
-		// 触发点赞事件，点赞发送通知，取消赞不发送通知
-		if (likeStatus == LikeStatus.LIKE) {
+		// 触发点赞事件，点赞发送通知，取消赞不发送通知，且自己给自己点赞就不用通知自己了
+		if (likeStatus == LikeStatus.LIKE && !userInfo.getId().equals(entityUserId)) {
 			Event event = Event.builder()
 					.topic(Topic.Like)
 					.userId(UserHolder.get().getId())
