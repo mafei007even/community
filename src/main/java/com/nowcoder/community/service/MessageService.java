@@ -7,6 +7,8 @@ import com.nowcoder.community.model.entity.Message;
 import com.nowcoder.community.model.enums.MessageStatus;
 import com.nowcoder.community.model.enums.Topic;
 import com.nowcoder.community.utils.SensitiveFilter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -20,6 +22,7 @@ import java.util.List;
  */
 
 @Service
+@Slf4j
 public class MessageService {
 
 	private final MessageMapper messageMapper;
@@ -30,6 +33,9 @@ public class MessageService {
 		this.sensitiveFilter = sensitiveFilter;
 	}
 
+	public Message findMessageById(Integer msgId) {
+		return messageMapper.selectByPrimaryKey(msgId);
+	}
 
 	public List<Message> findConversations(Integer userId, Page page) {
 		PageHelper.startPage(page.getCurrent(), page.getLimit());
@@ -45,18 +51,26 @@ public class MessageService {
 		return messageMapper.selectConversationCount(userId);
 	}
 
-	public List<Message> findLetters(String conversationId, Page page) {
+	/**
+	 *
+	 * @param conversationId
+	 * @param page
+	 * @param userId 用来判断当前用户是否删除了某条消息
+	 * @return
+	 */
+	public List<Message> findLetters(String conversationId, Page page, Integer userId) {
 		PageHelper.startPage(page.getCurrent(), page.getLimit());
-		return messageMapper.selectLetters(conversationId);
+		return messageMapper.selectLetters(conversationId, userId);
 	}
 
 	/**
 	 * 可以从 PageHelper 中取分页信息
 	 * @param conversationId
+	 * @param userId 用来判断当前用户是否删除了此条消息
 	 * @return
 	 */
-	public int findLetterCount(String conversationId) {
-		return messageMapper.selectLetterCount(conversationId);
+	public int findLetterCount(String conversationId, Integer userId) {
+		return messageMapper.selectLetterCount(conversationId, userId);
 	}
 
 	public int findLetterUnreadCount(Integer userId, String conversationId) {
@@ -149,4 +163,30 @@ public class MessageService {
 		return messageMapper.selectNotices(userId, topic);
 	}
 
+	/**
+	 * 删除私信的某一条消息
+	 * @param letter
+	 * @param userId
+	 */
+	public void deleteLetter(Message letter, Integer userId) {
+		String deleteBy = letter.getDeleteBy();
+		String wrap = "A" + userId + "A";
+		// 包含说明已经删除过此条消息了
+		if (StringUtils.contains(deleteBy, wrap)) {
+			log.warn("疑是脚本要删除已经删除的会话消息，userId: " + userId);
+			return;
+		}
+		deleteBy = StringUtils.isBlank(deleteBy) ? "" : deleteBy;
+		letter.setDeleteBy(deleteBy + wrap);
+		messageMapper.updateByPrimaryKeySelective(letter);
+	}
+
+	public void deleteNotice(Message notice) {
+		// 已经删除
+		if (notice.getStatus() == MessageStatus.DELETED) {
+			return;
+		}
+		notice.setStatus(MessageStatus.DELETED);
+		messageMapper.updateByPrimaryKeySelective(notice);
+	}
 }

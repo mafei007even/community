@@ -12,7 +12,7 @@ import lombok.Data;
  */
 
 @Data
-public class MessageNoticeVO {
+public class LatestNoticeVO {
 
 	/**
 	 * （点赞或评论或关注）中的最新一条消息
@@ -30,11 +30,6 @@ public class MessageNoticeVO {
 	private CommentEntityType entityType;
 
 	/**
-	 * 触发的事件通知的id，可能是帖子id、评论的id..
-	 */
-	private Integer entityId;
-
-	/**
 	 * 用户某个系统通知（点赞、评论、关注）下的总通知数量
 	 */
 	private Integer count;
@@ -43,11 +38,5 @@ public class MessageNoticeVO {
 	 * 用户某个系统通知（点赞、评论、关注）未读通知的数量
 	 */
 	private Integer unread;
-
-	/**
-	 * 如果是通知是： (点赞、评论)，此字段有值，是要跳转的帖子id
-	 * 关注通知没有此字段
-	 */
-	private Integer postId;
 
 }

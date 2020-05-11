@@ -12,7 +12,7 @@ import lombok.Data;
  */
 
 @Data
-public class NoticeForListVO {
+public class NoticeVO {
 
 	private Message notice;
 

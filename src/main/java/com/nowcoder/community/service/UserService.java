@@ -309,9 +309,12 @@ public class UserService {
     private User initUserCache(Integer userId){
         String userKey = RedisKeyUtils.getUserKey(userId);
         User user = userMapper.selectByPrimaryKey(userId);
-        // 保存1个小时
-        redisTemplate.opsForValue().set(userKey, JsonUtils.objectToJson(user), 1, TimeUnit.HOURS);
-        return user;
+        if (user != null) {
+            // 保存1个小时
+            redisTemplate.opsForValue().set(userKey, JsonUtils.objectToJson(user), 1, TimeUnit.HOURS);
+            return user;
+        }
+        return null;
     }
 
     /**

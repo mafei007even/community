@@ -3,6 +3,10 @@ package com.nowcoder.community.model.enums;
 /**
  * 私信消息的状态
  *
+ * @date 2020/5/11 19:13
+ * DELETED 用于系统通知消息的删除
+ * 私信消息的删除使用 deleteBy字段
+ *
  * @author mafei007
  * @date 2020/4/18 15:12
  */

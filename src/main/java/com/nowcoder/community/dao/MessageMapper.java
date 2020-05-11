@@ -42,6 +42,15 @@ public interface MessageMapper extends Mapper<Message> {
 	 * 因为 id 是自增长的，后面发的消息 id 肯定就大，后面发的消息create_time肯定也大
 	 * 所以用哪个来排序都行
 	 *
+	 * ----------------------2020年5月11日更新
+	 * 新增 delete_by
+	 * 		and (delete_by is null or delete_by not like '%A#{userId}A%')
+	 *
+	 * 	为什么加上前面加上 delete_by is null ？
+	 * 		因为数据库中 delete_by 存储默认为 null，null 对象不能进行 like 比较，会查不到东西
+	 * 		百度说 null 对象做运算得到的是 Unknown 对象，此对象代表 false
+	 * 		所以 delete_by like 'xx' 或者 delete_by not like 'xx' 结果都是 false
+	 *
 	 * @param userId
 	 * @return
 	 */
@@ -52,6 +61,7 @@ public interface MessageMapper extends Mapper<Message> {
 				"where from_id != 1 " +
 				"and status != 2 " +
 				"and (from_id = #{userId} or to_id = #{userId}) " +
+				"and (delete_by is null or delete_by not like concat('%A', #{userId}, 'A%')) " +
 				"GROUP BY conversation_id " +
 			") " +
 			"ORDER BY create_time desc")
@@ -80,6 +90,7 @@ public interface MessageMapper extends Mapper<Message> {
 				"where from_id != 1 " +
 				"and status != 2 " +
 				"and (from_id = #{userId} or to_id = #{userId}) " +
+				"and (delete_by is null or delete_by not like concat('%A', #{userId}, 'A%')) " +
 				"GROUP BY conversation_id" +
 			") as m")
 	int selectConversationCount(Integer userId);
@@ -94,23 +105,27 @@ public interface MessageMapper extends Mapper<Message> {
 			"where status != 2 " +
 			"and from_id != 1 " +
 			"and conversation_id = #{conversationId} " +
+			"and (delete_by is null or delete_by not like concat('%A', #{userId}, 'A%')) " +
 			"order by id desc")
-	List<Message> selectLetters(String conversationId);
+	List<Message> selectLetters(String conversationId, Integer userId);
 
 
 	/**
 	 * 查询某个会话所包含的私信数量，跟 selectLetters() 差不多
 	 * @param conversationId
+	 * @param userId 用来判断当前用户是否删除了此条消息
 	 * @return
 	 */
 	@Select("select count(id) from message " +
 			"where status != 2 " +
 			"and from_id != 1 " +
-			"and conversation_id = #{conversationId}")
-	int selectLetterCount(String conversationId);
+			"and conversation_id = #{conversationId} " +
+			"and (delete_by is null or delete_by not like concat('%A', #{userId}, 'A%'))")
+	int selectLetterCount(String conversationId, Integer userId);
 
 	/**
 	 * 查询未读私信的数量
+	 * 不会出现用户删除了某条私信但 status=0 未读的情况，已经在代码中做了控制
 	 * 有两处要用到：
 	 * 		1. 需要所有的未读会话数量
 	 * 		2. 需要某一个会话的未读数量

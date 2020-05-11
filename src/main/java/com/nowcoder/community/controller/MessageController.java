@@ -12,24 +12,22 @@ import com.nowcoder.community.model.enums.Topic;
 import com.nowcoder.community.model.enums.ValueEnum;
 import com.nowcoder.community.model.params.MessageParam;
 import com.nowcoder.community.model.support.BaseResponse;
+import com.nowcoder.community.model.support.CommunityConstant;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.model.vo.ConversationVo;
 import com.nowcoder.community.model.vo.LetterVo;
-import com.nowcoder.community.model.vo.MessageNoticeVO;
-import com.nowcoder.community.model.vo.NoticeForListVO;
+import com.nowcoder.community.model.vo.LatestNoticeVO;
+import com.nowcoder.community.model.vo.NoticeVO;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.utils.JsonUtils;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 
 import javax.validation.Valid;
@@ -45,6 +43,7 @@ import java.util.stream.Collectors;
  */
 
 @Controller
+@Slf4j
 public class MessageController {
 
 	private final MessageService messageService;
@@ -86,7 +85,7 @@ public class MessageController {
 				ConversationVo conversationVo = new ConversationVo();
 				String conversationId = message.getConversationId();
 				conversationVo.setConversation(message);
-				conversationVo.setLetterCount(messageService.findLetterCount(conversationId));
+				conversationVo.setLetterCount(messageService.findLetterCount(conversationId, userId));
 				conversationVo.setUnreadCount(messageService.findLetterUnreadCount(userId, conversationId));
 
 				// 私信用户id，需要查出用户名和头像
@@ -117,12 +116,20 @@ public class MessageController {
 	@ApiOperation("查看私信详情，并且将未读的消息设为已读")
 	public String getLetterDetail(@PathVariable String conversationId, Page page, Model model) {
 		isOwner(conversationId);
+
+		// 私信目标
+		User target = getLetterTarget(conversationId);
+		if (target == null) {
+			return "error/404";
+		}
+		model.addAttribute("target", target);
+
 		//分页信息
 		page.setLimit(5);
 		page.setPath("/letter/" + conversationId);
 
 		// 私信列表
-		List<Message> letterList = messageService.findLetters(conversationId, page);
+		List<Message> letterList = messageService.findLetters(conversationId, page, UserHolder.get().getId());
 
 		// page.setRows(messageService.findLetterCount(conversationId));
 		// 使用 PageHelper 来获取分页信息
@@ -144,10 +151,7 @@ public class MessageController {
 		List<Integer> ids = getUnreadLetterIds(letterList);
 		messageService.readMessage(ids);
 
-		// 私信目标
-		model.addAttribute("target", getLetterTarget(conversationId));
 		model.addAttribute("letterVoList", letterVoList);
-
 		return "site/letter-detail";
 	}
 
@@ -169,6 +173,76 @@ public class MessageController {
 
 		return BaseResponse.ok("发送私信成功！");
 	}
+
+	/**
+	 * 删除会话中的某一条私信
+	 * @param letterId
+	 * @return
+	 */
+	@LoginRequired
+	@DeleteMapping("letter")
+	@ResponseBody
+	@ApiOperation("删除会话中的某一条私信")
+	public BaseResponse deleteLetter(@RequestParam Integer letterId) {
+		Message letter = messageService.findMessageById(letterId);
+		if (letter == null) {
+			return new BaseResponse(400, "删除失败，消息不存在", null);
+		}
+
+		Integer userId = UserHolder.get().getId();
+
+		// 如果是系统通知类消息不给删除
+		if (letter.getFromId().equals(CommunityConstant.SYSTEM_USER_ID)) {
+			return new BaseResponse(403, "forbidden", null);
+		}
+		// 脚本执行才会出现
+		if (!userId.equals(letter.getFromId()) && !userId.equals(letter.getToId())) {
+			log.warn(String.format("尝试删除非自己的会话消息，userId: %s, letterId: %s", userId, letterId));
+			return new BaseResponse(403, "forbidden", null);
+		}
+		//如果 status 为0未读状态，说明用户没有点开详情页，也就是使用脚本进行 delete msg ，此时就不允许 delete
+		if (letter.getStatus() == MessageStatus.UNREAD) {
+			log.warn(String.format("尝试删除自己的未读会话消息，userId: %s, letterId: %s", userId, letterId));
+			return new BaseResponse(403, "forbidden", null);
+		}
+
+		messageService.deleteLetter(letter, userId);
+
+		return BaseResponse.ok("删除成功！");
+	}
+
+	@LoginRequired
+	@DeleteMapping("notice")
+	@ResponseBody
+	@ApiOperation("删除某一条系统通知")
+	public BaseResponse deleteNotice(@RequestParam Integer noticeId) {
+		Message notice = messageService.findMessageById(noticeId);
+		if (notice == null) {
+			return new BaseResponse(400, "删除失败，消息不存在", null);
+		}
+		Integer userId = UserHolder.get().getId();
+
+		// 删除非系统通知
+		if (!notice.getFromId().equals(CommunityConstant.SYSTEM_USER_ID)) {
+			return new BaseResponse(403, "forbidden", null);
+		}
+
+		if (!userId.equals(notice.getToId())) {
+			log.warn(String.format("尝试删除非自己的系统通知，userId: %s, noticeId: %s", userId, noticeId));
+			return new BaseResponse(403, "forbidden", null);
+		}
+
+		//如果 status 为0未读状态，说明用户没有点开通知详情页，也就是使用脚本进行 delete，此时就不允许 delete
+		if (notice.getStatus() == MessageStatus.UNREAD) {
+			log.warn(String.format("尝试删除自己的未读系统通知，userId: %s, noticeId: %s", userId, noticeId));
+			return new BaseResponse(403, "forbidden", null);
+		}
+
+		messageService.deleteNotice(notice);
+
+		return BaseResponse.ok("删除成功！");
+	}
+
 
 	private List<Integer> getUnreadLetterIds(List<Message> letterList) {
 		// 当前用户是消息的接收者才是进行读的操作
@@ -209,26 +283,22 @@ public class MessageController {
 		Integer userId = userInfo.getId();
 
 		// 查询评论类通知
-		MessageNoticeVO commentNoticeVO = getLatestMessageVo(userId, Topic.Comment);
+		LatestNoticeVO commentNoticeVO = getLatestMessageVo(userId, Topic.Comment);
 		model.addAttribute("commentNotice", commentNoticeVO);
 
 		// 查询点赞类通知
-		MessageNoticeVO likeNoticeVO = getLatestMessageVo(userId, Topic.Like);
+		LatestNoticeVO likeNoticeVO = getLatestMessageVo(userId, Topic.Like);
 		model.addAttribute("likeNotice", likeNoticeVO);
 
 		// 查询关注类通知
-		MessageNoticeVO followNoticeVO = getLatestMessageVo(userId, Topic.Follow);
+		LatestNoticeVO followNoticeVO = getLatestMessageVo(userId, Topic.Follow);
 		model.addAttribute("followNotice", followNoticeVO);
-
-		// 查询私信未读消息数量
-		int letterUnreadCount = messageService.findLetterUnreadCount(userId, null);
-		model.addAttribute("letterUnreadCount", letterUnreadCount);
 
 		// 查询系统通知未读消息数量
 		int allNoticeUnreadCount = messageService.findAllNoticeUnreadCount(userId);
 		model.addAttribute("allNoticeUnreadCount", allNoticeUnreadCount);
 
-		// 用户私信总未读数量
+		// 用户私信总未读消息数量
 		int allLetterUnreadCount = messageService.findLetterUnreadCount(userId, null);
 		model.addAttribute("allLetterUnreadCount", allLetterUnreadCount);
 
@@ -241,10 +311,10 @@ public class MessageController {
 	 * @param topic 点赞、评论、关注
 	 * @return
 	 */
-	private MessageNoticeVO getLatestMessageVo(Integer userId, Topic topic) {
+	private LatestNoticeVO getLatestMessageVo(Integer userId, Topic topic) {
 		Message latestTopicNotice = messageService.findLatestNotice(userId, topic);
 		// message vo
-		MessageNoticeVO noticeVO = new MessageNoticeVO();
+		LatestNoticeVO noticeVO = new LatestNoticeVO();
 		if (latestTopicNotice != null) {
 			noticeVO.setMessage(latestTopicNotice);
 
@@ -255,19 +325,12 @@ public class MessageController {
 
 			CommentEntityType entityType = ValueEnum.valueToEnum(CommentEntityType.class, (Integer) content.get("entityType"));
 			noticeVO.setEntityType(entityType);
-			noticeVO.setEntityId((Integer) content.get("entityId"));
-
 
 			int count = messageService.findNoticeCount(userId, topic);
 			noticeVO.setCount(count);
 
 			int unread = messageService.findNoticeUnreadCount(userId, topic);
 			noticeVO.setUnread(unread);
-
-			// 关注类通知不需要 postId 参数
-			if (topic != Topic.Follow) {
-				noticeVO.setPostId((Integer) content.get("postId"));
-			}
 		}
 		return noticeVO;
 	}
@@ -285,9 +348,9 @@ public class MessageController {
 		PageInfo<Message> pageInfo = new PageInfo<>(notices);
 		page.setRows((int) pageInfo.getTotal());
 
-		List<NoticeForListVO> noticeVoList = notices.stream()
+		List<NoticeVO> noticeVoList = notices.stream()
 				.map(notice -> {
-					NoticeForListVO noticeVo = new NoticeForListVO();
+					NoticeVO noticeVo = new NoticeVO();
 					noticeVo.setNotice(notice);
 
 					String jsonContent = HtmlUtils.htmlUnescape(notice.getContent());

@@ -70,7 +70,21 @@
 						<button type="button" class="btn btn-secondary btn-sm" onclick="back();">返回</button>
 					</div>
 				</div>
-				
+
+				<!-- 提示框 -->
+				<div class="modal fade" id="hintModal" tabindex="-1" role="dialog" aria-labelledby="hintModalLabel" aria-hidden="true">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="hintModalLabel">提示</h5>
+							</div>
+							<div class="modal-body" id="hintBody">
+								发送完毕!
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<!-- 通知列表 -->
 				<ul class="list-unstyled mt-4">
 					<li class="media pb-3 pt-3 mb-2" th:each="noticeVo : ${notices}">
@@ -79,7 +93,8 @@
 							<div class="toast-header">
 								<strong class="mr-auto" th:utext="${noticeVo.fromUser.username}">落基山脉下的闲人</strong>
 								<small th:text="${#dates.format(noticeVo.notice.createTime, 'yyyy-MM-dd HH:mm:ss')}">2019-04-25 15:49:32</small>
-								<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+								<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close"
+										th:onclick="|delete_notice(this, ${noticeVo.notice.id})|">
 									<span aria-hidden="true">&times;</span>
 								</button>
 							</div>

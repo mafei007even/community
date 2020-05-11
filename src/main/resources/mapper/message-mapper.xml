@@ -8,6 +8,20 @@
         id, from_id, to_id, conversation_id, content, status, create_time
     </sql>
 
+<!--    <select id="selectConversations" resultType="Message">
+        SELECT *
+        FROM message
+        WHERE id IN (
+            SELECT max(id)
+            FROM message
+            WHERE from_id != 1
+            AND status != 2
+            AND (from_id = #{userId} OR to_id = #{userId})
+            AND (delete_by IS NULL OR delete_by NOT LIKE "%"#{userId}"%")
+            GROUP BY conversation_id
+        );
+    </select>-->
+
     <select id="selectLetterUnreadCount" resultType="int">
         select count(id)
         from message

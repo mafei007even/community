@@ -25,7 +25,19 @@ public class Message {
 	private Integer toId;
 	private String conversationId;
 	private String content;
+
+	/**
+	 * 通知类消息使用此字段标记是否删除
+	 */
 	private MessageStatus status;
+
+	/**
+	 * 私信类消息使用此字段标记是否删除
+	 * 消息被fromId删了还是toId删了，删除的那一方不显示此条消息
+	 * 存的是： A123AA1234A
+	 * userId 前后加上 A，避免 id 被另一个 id 包含的现象
+	 */
+	private String deleteBy;
 	private Date createTime;
 
 }
