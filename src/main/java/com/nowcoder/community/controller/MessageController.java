@@ -156,6 +156,9 @@ public class MessageController {
 	@PostMapping("letter/send")
 	@ResponseBody
 	public BaseResponse sendLetter(@Valid MessageParam messageParam) {
+		if (UserHolder.get().getUsername().equals(messageParam.getToName())) {
+			return new BaseResponse(400, "不能给自己私信", null);
+		}
 		User target = userService.findUserByUsername(messageParam.getToName());
 		if (target == null) {
 			throw new NotFoundException("要发送私信的用户不存在");
