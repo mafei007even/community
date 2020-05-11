@@ -156,7 +156,7 @@ public class DiscussPostController {
                 // 这条回复评论的点赞状态，没有登陆那就是没点赞
                 LikeStatus replyLikeStatus = userInfo == null ?
                         LikeStatus.NONE : likeService.findEntityLikeStatus(userInfo.getId(),
-                        CommentEntityType.COMMENT, comment.getId());
+                        CommentEntityType.COMMENT, reply.getId());
                 replyVO.setLikeStatus(replyLikeStatus);
 
 
