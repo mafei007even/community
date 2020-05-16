@@ -18,12 +18,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
 	private final LoginTicketInterceptor loginTicketInterceptor;
-	private final LoginRequiredInterceptor loginRequiredInterceptor;
+	// private final LoginRequiredInterceptor loginRequiredInterceptor;
 	private final MessageCountInterceptor messageCountInterceptor;
 
-	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor, LoginRequiredInterceptor loginRequiredInterceptor, MessageCountInterceptor messageCountInterceptor) {
+	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor/*, LoginRequiredInterceptor loginRequiredInterceptor*/, MessageCountInterceptor messageCountInterceptor) {
 		this.loginTicketInterceptor = loginTicketInterceptor;
-		this.loginRequiredInterceptor = loginRequiredInterceptor;
+		// this.loginRequiredInterceptor = loginRequiredInterceptor;
 		this.messageCountInterceptor = messageCountInterceptor;
 	}
 
@@ -33,8 +33,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		registry.addInterceptor(loginTicketInterceptor)
 				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
-		registry.addInterceptor(loginRequiredInterceptor)
-				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
+		// registry.addInterceptor(loginRequiredInterceptor)
+		// 		.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
 		registry.addInterceptor(messageCountInterceptor)
 				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");

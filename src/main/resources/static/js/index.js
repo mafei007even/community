@@ -9,6 +9,14 @@ function publish() {
     var title = $("#recipient-name").val();
     var content = $("#message-text").val();
 
+    // 发送 ajax 请求之前，将csrf令牌设置到请求的头中.
+    // 每个需要 ajax 请求的页面都需要这样设置
+    // var token = $("meta[name='_csrf']").attr("content");
+    // var header = $("meta[name='_csrf_header']").attr("content");
+    // $(document).ajaxSend(function (e, xhr, options) {
+    //     xhr.setRequestHeader(header, token);
+    // })
+
     $.ajax({
         url: CONTEXT_PATH + "/discuss",
         type: 'post',

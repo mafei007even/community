@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
@@ -177,6 +178,8 @@ public class LoginController {
         cookie.setPath(contextPath);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+
+        SecurityContextHolder.clearContext();
 
         return "redirect:/login";
     }

@@ -3,6 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!--    访问该页面时，在此处生成 CSRF 令牌-->
+<!--    页面中的表单在加入 Spring Security 后会自动加上隐藏域 _csrf-->
+<!--    这里是对 ajax 请求设置，获取 csrf 的 key 和 value，放在请求头中-->
+<!--    每个需要 ajax 请求的页面都需要这样设置-->
+<!--    <meta name="_csrf" th:content="${_csrf.token}">-->
+<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+
     <link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" type="text/css"/>
     <link rel="stylesheet" th:href="@{/css/global.css}"/>
