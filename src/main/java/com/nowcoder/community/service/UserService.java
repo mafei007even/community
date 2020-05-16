@@ -1,5 +1,6 @@
 package com.nowcoder.community.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.model.enums.UserActivationStatus;
 import com.nowcoder.community.model.enums.ExpiredTime;
@@ -216,9 +217,7 @@ public class UserService {
         String uuid = CodecUtils.generateUUID();
 
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(user.getId());
-        userInfo.setUsername(user.getUsername());
-        userInfo.setHeaderUrl(user.getHeaderUrl());
+        BeanUtil.copyProperties(user, userInfo, "status");
         userInfo.setStatus(1);
 
         saveUserInfo(userInfo, uuid);
@@ -264,7 +263,15 @@ public class UserService {
         }
         String ticketKey = RedisKeyUtils.getTicketKey(ticket);
         String json = redisTemplate.opsForValue().get(ticketKey);
-        return json == null ? null : JsonUtils.jsonToPojo(json, UserInfo.class);
+        UserInfo userInfo = JsonUtils.jsonToPojo(json, UserInfo.class);
+        if (userInfo == null) {
+            return null;
+        }
+        // status 为 0 说明当前的 ticket 已经 logout了
+        if (userInfo.getStatus().equals(0)) {
+            return null;
+        }
+        return userInfo;
     }
 
 
@@ -332,6 +339,17 @@ public class UserService {
             @Override
             public String getAuthority() {
                 return user.getType().name();
+            }
+        });
+        return list;
+    }
+
+    public Collection<? extends GrantedAuthority> getAutorities(UserInfo userInfo) {
+        List<GrantedAuthority> list = new ArrayList<>();
+        list.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                return userInfo.getType().name();
             }
         });
         return list;

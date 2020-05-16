@@ -28,7 +28,12 @@ public enum Topic implements ValueEnum<String> {
 	/**
 	 * 发布帖子
 	 */
-	Publish("publish");
+	Publish("publish"),
+
+	/**
+	 * 删帖事件
+	 */
+	Delete("delete");
 
 	private final String value;
 

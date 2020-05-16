@@ -37,6 +37,7 @@ public class EventConsumer {
 	private final String LIKE = "like";
 	private final String FOLLOW = "follow";
 	private final String PUBLISH = "publish";
+	private final String DELETE = "delete";
 
 
 	public EventConsumer(MessageService messageService, DiscussPostService discussPostService, ElasticsearchService elasticsearchService) {
@@ -104,6 +105,26 @@ public class EventConsumer {
 		DiscussPost post = discussPostService.findDiscussPostById(event.getEntityId());
 		EsDiscussPost esDiscussPost = EsDiscussPost.convertTo(post);
 		elasticsearchService.saveDiscussPost(esDiscussPost);
+	}
+
+	/**
+	 * 消费删帖事件，将贴子从 es 索引库 删除
+	 * @param record
+	 */
+	@KafkaListener(topics = {DELETE})
+	public void hadleDeleteMessage(ConsumerRecord record) {
+		if (record == null || record.value() == null) {
+			log.error("消息的内容为空");
+			return;
+		}
+
+		Event event = JsonUtils.jsonToPojo(record.value().toString(), Event.class);
+		if (event == null) {
+			log.error("消息格式错误！");
+			return;
+		}
+
+		elasticsearchService.deleteDiscussPost(event.getEntityId());
 	}
 
 }

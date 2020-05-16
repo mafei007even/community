@@ -54,6 +54,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				).hasAnyAuthority(allLoginAuthorities)
 				.antMatchers(HttpMethod.POST,  "/discuss")
 				.hasAnyAuthority(allLoginAuthorities)
+				.antMatchers(
+						"/discuss/top",
+						"/discuss/wonderful"
+				).hasAnyAuthority(UserType.MODERATOR.name())
+				.antMatchers("/discuss/delete")
+				.hasAnyAuthority(UserType.ADMIN.name(), UserType.ORDINARY.name())
+				.antMatchers("/discuss/restore")
+				.hasAnyAuthority(UserType.ADMIN.name())
 				.anyRequest().permitAll()
 				.and().csrf().disable();
 
@@ -88,7 +96,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						// 判断是否 ajax 请求
 						String xRequestedWith = request.getHeader("x-requested-with");
 						if ("XMLHttpRequest".equalsIgnoreCase(xRequestedWith)) {
-							int code = HttpStatus.FORBIDDEN.value();
+							// 401
+							int code = HttpStatus.UNAUTHORIZED.value();
 							response.setStatus(code);
 							response.setContentType("application/json;charset=utf-8");
 							BaseResponse<String> resp = new BaseResponse<>(code, "您没有访问此功能的权限！", null);

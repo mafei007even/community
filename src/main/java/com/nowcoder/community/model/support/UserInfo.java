@@ -1,6 +1,7 @@
 package com.nowcoder.community.model.support;
 
 
+import com.nowcoder.community.model.enums.UserType;
 import lombok.Data;
 
 /**
@@ -23,5 +24,15 @@ public class UserInfo {
 	 * 用户退出时不将登陆凭证从 redis 中删除，要留着来统计数据
 	 */
 	private Integer status;
+
+	/**
+	 * 为 Spring Security 增加
+	 */
+	private String password;
+
+	/**
+	 * 为 Spring Security 增加
+	 */
+	private UserType type;
 
 }

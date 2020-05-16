@@ -58,7 +58,6 @@ public class JsonUtils {
             return t;
         } catch (Exception e) {
             logger.error("json解析出错：" + jsonData, e);
-            e.printStackTrace();
         }
         return null;
     }
@@ -79,7 +78,6 @@ public class JsonUtils {
             return list;
         } catch (Exception e) {
             logger.error("json解析出错：" + jsonData, e);
-            e.printStackTrace();
         }
 
         return null;
@@ -111,7 +109,6 @@ public class JsonUtils {
             return map;
         } catch (JsonProcessingException e) {
             logger.error("json解析出错：" + jsonData, e);
-            e.printStackTrace();
         }
 
         return null;

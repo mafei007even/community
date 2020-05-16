@@ -14,14 +14,14 @@ public enum UserType implements ValueEnum<Integer> {
     ORDINARY(0),
 
     /**
-     * 超级管理员
+     * 管理员
      */
     ADMIN(1),
 
     /**
-     * 版主
+     * 系统版主
      */
-    POSTER(2);
+    MODERATOR(2);
 
 
     private final Integer value;

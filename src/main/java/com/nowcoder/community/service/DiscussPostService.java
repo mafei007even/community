@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.enums.DiscussPostStatus;
+import com.nowcoder.community.model.enums.DiscussPostType;
 import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -69,11 +70,32 @@ public class DiscussPostService {
         return post;
     }
 
+    public DiscussPost findDiscussPostByIdAllowBlock(Integer postId) {
+        return discussPostMapper.selectByPrimaryKey(postId);
+    }
 
     public int updateCommentCount(Integer id, Integer commentCount){
         DiscussPost post = new DiscussPost();
         post.setId(id);
         post.setCommentCount(commentCount);
+        return discussPostMapper.updateByPrimaryKeySelective(post);
+    }
+
+    public int updateType(Integer postId, DiscussPostType type) {
+        Assert.notNull(postId, "帖子postId不能为空！");
+        Assert.notNull(type, "帖子type不能为空！");
+        DiscussPost post = new DiscussPost();
+        post.setId(postId);
+        post.setType(type);
+        return discussPostMapper.updateByPrimaryKeySelective(post);
+    }
+
+    public int updateStatus(Integer postId, DiscussPostStatus status) {
+        Assert.notNull(postId, "帖子postId不能为空！");
+        Assert.notNull(status, "帖子status不能为空！");
+        DiscussPost post = new DiscussPost();
+        post.setId(postId);
+        post.setStatus(status);
         return discussPostMapper.updateByPrimaryKeySelective(post);
     }
 

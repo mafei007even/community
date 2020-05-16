@@ -1,3 +1,137 @@
+$(function () {
+
+    $("#topBtn").click(setTop);
+    $("#wonderfulBtn").click(setWonderful);
+    $("#deleteBtn").click(setDelete);
+    $("#restoreBtn").click(restorePost);
+
+})
+
+function errorHandler(data) {
+    // 是否登陆
+    if (data.responseJSON.status === 403) {
+        let goLogin = confirm("您还没有登陆，没有权限！是否现在登陆？");
+        if (goLogin === true){
+            location.href = data.responseJSON.data;
+        }
+        return;
+    }
+    // 在提示框中显示返回的消息
+    let errors;
+    if (data.responseJSON.data != null) {
+        errors = Object.values(data.responseJSON.data);
+    } else{
+        errors = data.responseJSON.message;
+    }
+    alert(errors);
+}
+
+function setTop() {
+    var tip;
+    var type; //'0-普通; 1-置顶;'
+    var successMsg;
+    var btnVal;
+
+    if ($("#topBtn").text() === "置顶") {
+        tip = "确定将该帖子置顶吗？";
+        type = 1;
+        successMsg = "置顶成功！"
+        btnVal = "取消置顶"
+    } else{
+        tip = "确定将该帖子取消置顶吗？";
+        type = 0;
+        successMsg = "取消置顶成功！"
+        btnVal = "置顶"
+    }
+
+    if (!confirm(tip)){
+        return;
+    }
+    let postId = $("#postId").val();
+    $.ajax({
+        url: CONTEXT_PATH + "/discuss/top",
+        type: "post",
+        dataType: 'json',
+        data: {"postId": postId, 'type': type}
+    }).done(function (data) {
+        $("#topBtn").text(btnVal)
+        alert(successMsg)
+    }).fail(function (data) {
+        errorHandler(data);
+    })
+}
+
+function setWonderful() {
+    var tip;
+    var status; //'0-正常; 1-精华; 2-拉黑;'
+    var successMsg;
+    var btnVal;
+
+    if ($("#wonderfulBtn").text() === "加精") {
+        tip = "确定将该帖子加精吗？";
+        status = 1;
+        successMsg = "加精成功！"
+        btnVal = "取消加精"
+    } else{
+        tip = "确定将该帖子取消加精吗？";
+        status = 0;
+        successMsg = "取消加精成功！"
+        btnVal = "加精"
+    }
+
+    if (!confirm(tip)){
+        return;
+    }
+    let postId = $("#postId").val();
+    $.ajax({
+        url: CONTEXT_PATH + "/discuss/wonderful",
+        type: "post",
+        dataType: 'json',
+        data: {"postId": postId, 'status': status}
+    }).done(function (data) {
+        $("#wonderfulBtn").text(btnVal);
+        alert(successMsg)
+    }).fail(function (data) {
+        errorHandler(data);
+    })
+}
+
+function setDelete() {
+    if (!confirm("确定将该帖子删除吗？")){
+        return;
+    }
+    let postId = $("#postId").val();
+    $.ajax({
+        url: CONTEXT_PATH + "/discuss/delete",
+        type: "post",
+        dataType: 'json',
+        data: {"postId": postId}
+    }).done(function (data) {
+        alert("删除成功！")
+        location.href = CONTEXT_PATH + "/index";
+    }).fail(function (data) {
+        errorHandler(data);
+    })
+}
+
+function restorePost() {
+    if (!confirm("确定将该已删除的帖子恢复吗？")){
+        return;
+    }
+    let postId = $("#postId").val();
+    $.ajax({
+        url: CONTEXT_PATH + "/discuss/restore",
+        type: "post",
+        dataType: 'json',
+        data: {"postId": postId}
+    }).done(function (data) {
+        alert("恢复成功！");
+        window.location.reload()
+    }).fail(function (data) {
+        errorHandler(data);
+    })
+}
+
 function like(btn, entityType, entityId, entityUserId, postId) {
 
     $.ajax({
