@@ -1,13 +1,17 @@
 package com.nowcoder.community.config;
 
-import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
+import com.nowcoder.community.controller.interceptor.DataInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
 import com.nowcoder.community.controller.interceptor.MessageCountInterceptor;
 import com.nowcoder.community.factory.StringToEnumConverterFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * @author mafei007
@@ -20,11 +24,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	private final LoginTicketInterceptor loginTicketInterceptor;
 	// private final LoginRequiredInterceptor loginRequiredInterceptor;
 	private final MessageCountInterceptor messageCountInterceptor;
+	private final DataInterceptor dataInterceptor;
 
-	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor/*, LoginRequiredInterceptor loginRequiredInterceptor*/, MessageCountInterceptor messageCountInterceptor) {
+	public WebMvcConfig(LoginTicketInterceptor loginTicketInterceptor/*, LoginRequiredInterceptor loginRequiredInterceptor*/, MessageCountInterceptor messageCountInterceptor, DataInterceptor dataInterceptor) {
 		this.loginTicketInterceptor = loginTicketInterceptor;
 		// this.loginRequiredInterceptor = loginRequiredInterceptor;
 		this.messageCountInterceptor = messageCountInterceptor;
+		this.dataInterceptor = dataInterceptor;
 	}
 
 	@Override
@@ -39,11 +45,25 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		registry.addInterceptor(messageCountInterceptor)
 				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
 
+		registry.addInterceptor(dataInterceptor)
+				.excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.jpg", "/**/*.png", "/**/*.jpeg");
+
 	}
 
 	@Override
 	public void addFormatters(FormatterRegistry registry) {
+		// 字符串转枚举工厂
 		registry.addConverterFactory(new StringToEnumConverterFactory());
+		// 日期字符串转 LocalDate
+		registry.addConverter(new Converter<String, LocalDate>() {
+
+			private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+			@Override
+			public LocalDate convert(String source) {
+				return LocalDate.parse(source, formatter);
+			}
+		});
 	}
 
 

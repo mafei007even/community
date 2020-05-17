@@ -4,6 +4,8 @@ import com.nowcoder.community.model.enums.CommentEntityType;
 import org.springframework.util.Assert;
 
 /**
+ *
+ * 返回的都是要保存在 redis 中的 key
  * @author mafei007
  * @date 2020/4/19 22:12
  */
@@ -22,6 +24,8 @@ public class RedisKeyUtils {
 	private static final String PREFIX_CAPTCHA = "captcha";
 	private static final String PREFIX_TICKET = "ticket";
 	private static final String PREFIX_USER = "user";
+	private static final String PREFIX_UV = "uv";
+	private static final String PREFIX_DAU = "dau";
 
 	/**
 	 *
@@ -101,6 +105,45 @@ public class RedisKeyUtils {
 	 */
 	public static String getUserKey(Integer userId) {
 		return PREFIX_USER + SPLIT + userId;
+	}
+
+	/**
+	 * 单日UV   Unique Visitor 独立访客
+	 * @param date yyyyMMdd 格式
+	 * @return
+	 */
+	public static String getUVKey(String date){
+		return PREFIX_UV + SPLIT + date;
+	}
+
+	/**
+	 * 区间UV
+	 * 比如统计 20200515 至 20200520 之间的 UV
+	 * @param startDate yyyyMMdd 格式 开始日期
+	 * @param endDate yyyyMMdd 格式 截至日期
+	 * @return
+	 */
+	public static String getUVKey(String startDate, String endDate){
+		return PREFIX_UV + SPLIT + startDate + SPLIT + endDate;
+	}
+
+	/**
+	 * 单日活跃用户 DAU   Daily Active User
+	 * @param date
+	 * @return
+	 */
+	public static String getDAUKey(String date) {
+		return PREFIX_DAU + SPLIT + date;
+	}
+
+	/**
+	 * 区间活跃用户
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
+	public static String getDAUKey(String startDate, String endDate) {
+		return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
 	}
 
 }

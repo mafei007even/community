@@ -60,7 +60,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				).hasAnyAuthority(UserType.MODERATOR.name())
 				.antMatchers("/discuss/delete")
 				.hasAnyAuthority(UserType.ADMIN.name(), UserType.ORDINARY.name())
-				.antMatchers("/discuss/restore")
+				.antMatchers(
+						"/discuss/restore",
+						"/data/**")
 				.hasAnyAuthority(UserType.ADMIN.name())
 				.anyRequest().permitAll()
 				.and().csrf().disable();
@@ -105,7 +107,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 							response.getWriter().write(json);
 						} else {
 							// 重定向到权限不足的页面
-							response.sendRedirect(request.getContextPath() + "/denied");
+							// response.sendRedirect(request.getContextPath() + "/denied");
+							// 重定向地址会变成 /denied，这里考虑使用转发
+							request.getRequestDispatcher("/denied").forward(request, response);
 						}
 					}
 				});
