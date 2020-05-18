@@ -76,8 +76,8 @@
 						<!--<button type="button" class="btn btn-danger btn-sm" id="deleteBtn"
 							th:disabled="${post.status == 2}" sec:authorize="hasAnyAuthority('ADMIN', 'ORDINARY')">删除</button>-->
 						<button type="button" class="btn btn-danger btn-sm" id="deleteBtn"
-							th:if="${loginUser != null &&
-								((loginUser.type.name() == 'ORDINARY' && post.userId == loginUser.id) ||
+							th:if="${loginUser != null
+								&& (((loginUser.type.name() == 'ORDINARY' || loginUser.type.name() == 'MODERATOR') && post.userId == loginUser.id) ||
 								 (loginUser.type.name() == 'ADMIN' && post.status.name() != 'BLOCK'))}">删除</button>
 						<button type="button" class="btn btn-danger btn-sm" id="restoreBtn"
 								th:if="${loginUser != null && loginUser.type.name() == 'ADMIN' && post.status.name() == 'BLOCK'}">此贴已删除，点击恢复</button>
@@ -85,12 +85,12 @@
 				</h6>
 				<!-- 作者 -->
 				<div class="media pb-3 border-bottom">
-					<a th:href="@{|/user/profile/${user.id}|}">
+					<a target="_blank" th:href="@{|/user/profile/${user.id}|}">
 						<img th:src="|${#strings.startsWith(user.headerUrl, 'http://') ? user.headerUrl : 'http://images.nowcoder.com' + user.headerUrl}|"
 								class="align-self-start mr-4 rounded-circle user-header" alt="用户头像" >
 					</a>
 					<div class="media-body">
-						<a th:href="@{|/user/profile/${user.id}|}"><div class="mt-0 text-warning" th:utext="${user.username}">寒江雪</div></a>
+						<a target="_blank" th:href="@{|/user/profile/${user.id}|}"><div class="mt-0 text-warning" th:utext="${user.username}">寒江雪</div></a>
 						<div class="text-muted mt-3">
 							发布于 <b th:text="${#dates.format(post.createTime, 'yyyy-MM-dd HH:mm:ss')}">2019-04-15 15:32:18</b>
 							<ul class="d-inline float-right">
@@ -131,13 +131,13 @@
 
 
 					<li class="media pb-3 pt-3 mb-3 border-bottom" th:each="cvo : ${comments}">
-						<a th:href="@{|/user/profile/${cvo.user.id}|}">
+						<a target="_blank" th:href="@{|/user/profile/${cvo.user.id}|}">
 							<img th:src="|${#strings.startsWith(cvo.user.headerUrl, 'http://') ? cvo.user.headerUrl : 'http://images.nowcoder.com' + cvo.user.headerUrl}|"
 								 class="align-self-start mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>
 						<div class="media-body">
 							<div class="mt-0">
-								<a th:href="@{|/user/profile/${cvo.user.id}|}">
+								<a target="_blank" th:href="@{|/user/profile/${cvo.user.id}|}">
 									<span class="font-size-12 text-success" th:utext="${cvo.user.username}">掉脑袋切切</span>
 								</a>
 								<span class="badge badge-secondary float-right floor">
@@ -165,15 +165,15 @@
 								<li class="pb-3 pt-3 mb-3 border-bottom" th:each="rvo : ${cvo.replys}">
 									<div>
 										<span th:if="${rvo.target == null}">
-											<a th:href="@{|/user/profile/${rvo.user.id}|}">
+											<a target="_blank" th:href="@{|/user/profile/${rvo.user.id}|}">
 												<b class="text-info" th:utext="${rvo.user.username}">寒江雪</b>:&nbsp;&nbsp;
 											</a>
 										</span>
 										<span th:if="${rvo.target != null}">
-											<a th:href="@{|/user/profile/${rvo.user.id}|}">
+											<a target="_blank" th:href="@{|/user/profile/${rvo.user.id}|}">
 												<i class="text-info" th:utext="${rvo.user.username}">mafei</i> 回复
 											</a>
-											<a th:href="@{|/user/profile/${rvo.target.id}|}">
+											<a target="_blank" th:href="@{|/user/profile/${rvo.target.id}|}">
 												<b class="text-info" th:utext="${rvo.target.username}">寒江雪</b>:&nbsp;&nbsp;
 											</a>
 										</span>

@@ -2,6 +2,7 @@ package com.nowcoder.community.dao;
 
 import com.nowcoder.community.elasticsearch.model.EsDiscussPost;
 import com.nowcoder.community.model.entity.DiscussPost;
+import com.nowcoder.community.model.enums.OrderMode;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import tk.mybatis.mapper.common.Mapper;
@@ -17,7 +18,7 @@ import java.util.List;
 public interface DiscussPostMapper extends Mapper<DiscussPost> {
 
 
-    List<DiscussPost> selectDiscussPosts(Integer userId, Integer offset, Integer limit);
+    List<DiscussPost> selectDiscussPosts(Integer userId, Integer offset, Integer limit, OrderMode orderMode);
 
     /**
      * 视频说如果只有一个参数，使用动态sql在 <if>中使用，必需使用别名@Param

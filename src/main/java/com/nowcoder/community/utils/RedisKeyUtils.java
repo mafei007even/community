@@ -26,6 +26,7 @@ public class RedisKeyUtils {
 	private static final String PREFIX_USER = "user";
 	private static final String PREFIX_UV = "uv";
 	private static final String PREFIX_DAU = "dau";
+	private static final String PREFIX_POST = "post";
 
 	/**
 	 *
@@ -144,6 +145,14 @@ public class RedisKeyUtils {
 	 */
 	public static String getDAUKey(String startDate, String endDate) {
 		return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
+	}
+
+	/**
+	 * key 对应一个 set，存储要计算权重的帖子 id
+	 * @return
+	 */
+	public static String getPostScoreKey() {
+		return PREFIX_POST + SPLIT + "score";
 	}
 
 }

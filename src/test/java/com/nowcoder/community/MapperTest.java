@@ -5,6 +5,7 @@ import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.elasticsearch.model.EsDiscussPost;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.User;
+import com.nowcoder.community.model.enums.OrderMode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class MapperTest {
 
     @Test
     public void testSelectPosts(){
-        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(0, 0, 10);
+        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(0, 0, 10, OrderMode.DATE);
         for (DiscussPost discussPost : discussPosts) {
             System.out.println(discussPost);
         }

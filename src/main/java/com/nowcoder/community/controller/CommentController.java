@@ -11,7 +11,9 @@ import com.nowcoder.community.model.params.CommentParam;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.utils.RedisKeyUtils;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,11 +33,13 @@ public class CommentController {
 	private final CommentService commentService;
 	private final EventProducer eventProducer;
 	private final DiscussPostService discussPostService;
+	private final RedisTemplate redisTemplate;
 
-	public CommentController(CommentService commentService, EventProducer eventProducer, DiscussPostService discussPostService) {
+	public CommentController(CommentService commentService, EventProducer eventProducer, DiscussPostService discussPostService, RedisTemplate redisTemplate) {
 		this.commentService = commentService;
 		this.eventProducer = eventProducer;
 		this.discussPostService = discussPostService;
+		this.redisTemplate = redisTemplate;
 	}
 
 	@LoginRequired
@@ -98,6 +102,10 @@ public class CommentController {
 					.entityId(discussPostId)
 					.build();
 			eventProducer.fireEvent(postEvent);
+
+			// 给帖子进行直接评论时更新权重
+			String redisKey = RedisKeyUtils.getPostScoreKey();
+			redisTemplate.opsForSet().add(redisKey, discussPostId);
 		}
 
 		return "redirect:/discuss/" + discussPostId;

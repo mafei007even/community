@@ -5,6 +5,7 @@ import com.nowcoder.community.dao.DiscussPostMapper;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.enums.DiscussPostStatus;
 import com.nowcoder.community.model.enums.DiscussPostType;
+import com.nowcoder.community.model.enums.OrderMode;
 import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -31,8 +32,8 @@ public class DiscussPostService {
     }
 
 
-    public List<DiscussPost> findDiscussPosts(Integer userId, Integer offset, Integer limit){
-        return discussPostMapper.selectDiscussPosts(userId, offset, limit);
+    public List<DiscussPost> findDiscussPosts(Integer userId, Integer offset, Integer limit, OrderMode orderMode){
+        return discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
     }
 
 
@@ -96,6 +97,15 @@ public class DiscussPostService {
         DiscussPost post = new DiscussPost();
         post.setId(postId);
         post.setStatus(status);
+        return discussPostMapper.updateByPrimaryKeySelective(post);
+    }
+
+    public int updateScore(Integer postId, double score) {
+        Assert.notNull(postId, "帖子postId不能为空！");
+        Assert.notNull(score, "帖子score不能为空！");
+        DiscussPost post = new DiscussPost();
+        post.setId(postId);
+        post.setScore(score);
         return discussPostMapper.updateByPrimaryKeySelective(post);
     }
 

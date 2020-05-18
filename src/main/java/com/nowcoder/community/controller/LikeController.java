@@ -11,6 +11,8 @@ import com.nowcoder.community.model.support.BaseResponse;
 import com.nowcoder.community.model.support.UserHolder;
 import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.LikeService;
+import com.nowcoder.community.utils.RedisKeyUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,10 +27,12 @@ public class LikeController {
 
 	private final LikeService likeService;
 	private final EventProducer eventProducer;
+	private final RedisTemplate redisTemplate;
 
-	public LikeController(LikeService likeService, EventProducer eventProducer) {
+	public LikeController(LikeService likeService, EventProducer eventProducer, RedisTemplate redisTemplate) {
 		this.likeService = likeService;
 		this.eventProducer = eventProducer;
+		this.redisTemplate = redisTemplate;
 	}
 
 	/**
@@ -84,6 +88,10 @@ public class LikeController {
 					.entityId(postId)
 					.build();
 			eventProducer.fireEvent(postEvent);
+
+			// 只有对帖子点赞时才更新权重
+			String redisKey = RedisKeyUtils.getPostScoreKey();
+			redisTemplate.opsForSet().add(redisKey, postId);
 		}
 
 		return BaseResponse.ok(likeDTO);

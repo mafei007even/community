@@ -59,7 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						"/discuss/wonderful"
 				).hasAnyAuthority(UserType.MODERATOR.name())
 				.antMatchers("/discuss/delete")
-				.hasAnyAuthority(UserType.ADMIN.name(), UserType.ORDINARY.name())
+				.hasAnyAuthority(allLoginAuthorities)
 				.antMatchers(
 						"/discuss/restore",
 						"/data/**")

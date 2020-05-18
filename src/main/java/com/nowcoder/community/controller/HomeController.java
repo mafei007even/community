@@ -4,6 +4,7 @@ import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.entity.User;
 import com.nowcoder.community.model.enums.CommentEntityType;
+import com.nowcoder.community.model.enums.OrderMode;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
@@ -11,6 +12,7 @@ import com.nowcoder.community.utils.MailClient;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.thymeleaf.TemplateEngine;
 
 import java.util.ArrayList;
@@ -41,16 +43,25 @@ public class HomeController {
         this.templateEngine = templateEngine;
     }
 
-
+    /**
+     * 首页的帖子列表有两种排序方式，由 OrderMode 传递
+     *   0-按日期排序
+     *   1-按热度排序
+     * @param model
+     * @param page
+     * @param orderMode
+     * @return
+     */
     @GetMapping("index")
-    public String getIndexPage(Model model, Page page) {
+    public String getIndexPage(Model model, Page page,
+                               @RequestParam(required = false, defaultValue = "0") OrderMode orderMode) {
 
         // 设置Page回显的数据
         page.setRows(discussPostService.findDiscussPostRows(0));
-        page.setPath("/index");
+        page.setPath("/index?orderMode=" + orderMode.getValue());
         model.addAttribute("page", page);
 
-        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit());
+        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         if (list != null) {
             for (DiscussPost post : list) {
@@ -68,7 +79,7 @@ public class HomeController {
             }
         }
         model.addAttribute("discussPosts", discussPosts);
-
+        model.addAttribute("orderMode", orderMode);
         return "index";
     }
 

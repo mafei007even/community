@@ -18,9 +18,11 @@ import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.utils.RedisKeyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,13 +48,15 @@ public class DiscussPostController {
     private final CommentService commentService;
     private final LikeService likeService;
     private final EventProducer eventProducer;
+    private final RedisTemplate redisTemplate;
 
-    public DiscussPostController(DiscussPostService discussPostService, UserService userService, CommentService commentService, LikeService likeService, EventProducer eventProducer) {
+    public DiscussPostController(DiscussPostService discussPostService, UserService userService, CommentService commentService, LikeService likeService, EventProducer eventProducer, RedisTemplate redisTemplate) {
         this.discussPostService = discussPostService;
         this.userService = userService;
         this.commentService = commentService;
         this.likeService = likeService;
         this.eventProducer = eventProducer;
+        this.redisTemplate = redisTemplate;
     }
 
     @LoginRequired
@@ -77,6 +81,10 @@ public class DiscussPostController {
                 .entityId(post.getId())
                 .build();
         eventProducer.fireEvent(event);
+
+        // 新增的帖子给个基础权重，加入缓存中等定时任务来计算权重
+        String redisKey = RedisKeyUtils.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey, post.getId());
 
         return BaseResponse.ok("发布成功");
     }
@@ -245,6 +253,10 @@ public class DiscussPostController {
                 .entityId(postId)
                 .build();
         eventProducer.fireEvent(event);
+
+        // 加精后重新计算权重
+        String redisKey = RedisKeyUtils.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey, postId);
 
         return BaseResponse.ok(null);
     }
