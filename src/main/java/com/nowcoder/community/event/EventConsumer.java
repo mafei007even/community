@@ -12,9 +12,11 @@ import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,11 +35,18 @@ public class EventConsumer {
 	private final DiscussPostService discussPostService;
 	private final ElasticsearchService elasticsearchService;
 
+	@Value("${wk.image.storage}")
+	private String wkImageStorage;
+
+	@Value("${wk.image.command}")
+	private String wkImageCommand;
+
 	private final String COMMENT = "comment";
 	private final String LIKE = "like";
 	private final String FOLLOW = "follow";
 	private final String PUBLISH = "publish";
 	private final String DELETE = "delete";
+	private final String SHARE = "share";
 
 
 	public EventConsumer(MessageService messageService, DiscussPostService discussPostService, ElasticsearchService elasticsearchService) {
@@ -125,6 +134,39 @@ public class EventConsumer {
 		}
 
 		elasticsearchService.deleteDiscussPost(event.getEntityId());
+	}
+
+	/**
+	 * 生成长图事件，利用 wkhtmltoimage 本地命令去生成图片
+	 * @param record
+	 */
+	@KafkaListener(topics = {SHARE})
+	public void hadleShareMessage(ConsumerRecord record) {
+		if (record == null || record.value() == null) {
+			log.error("消息的内容为空");
+			return;
+		}
+
+		Event event = JsonUtils.jsonToPojo(record.value().toString(), Event.class);
+		if (event == null) {
+			log.error("消息格式错误！");
+			return;
+		}
+
+		String htmlUrl = event.getData().get("htmlUrl").toString();
+		String fileName = event.getData().get("fileName").toString();
+		String suffix = event.getData().get("suffix").toString();
+
+		String cmd = wkImageCommand + " --quality 75 " + htmlUrl
+				+ " " + wkImageStorage + "/" + fileName + suffix;
+
+		try {
+			Runtime.getRuntime().exec(cmd);
+			log.info("生成分享图成功：" + cmd);
+		} catch (IOException e) {
+			log.info("生成分享图失败：" + cmd, e);
+		}
+
 	}
 
 }

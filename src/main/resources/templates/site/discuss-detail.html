@@ -63,11 +63,46 @@
 		<div class="main">
 			<!-- 帖子详情 -->
 			<div class="container">
+				<!-- 结果框 -->
+				<div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-hidden="true">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">生成结果图成功</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+<!--								1x1px透明GIF图片-->
+								<img class="m-3"  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+									 id="shareImg" onerror="repeatGetImg(this)" alt="分享图" width="550px">
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+							</div>
+						</div>
+					</div>
+				</div>
+<!--				tip-->
+				<div id="toast" role="alert" aria-live="assertive" aria-atomic="true" class="toast hide" data-autohide="false">
+					<div class="toast-header">
+						<strong class="mr-auto">提示</strong>
+						<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="toast-body" id="toastBody">
+						Hello, world! This is a toast message.
+					</div>
+				</div>
+
 				<!-- 标题 -->
 				<h6 class="mb-4">
 					<img src="http://static.nowcoder.com/images/img/icons/ico-discuss.png"/>
 					<span th:utext="${post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</span>
 					<div class="float-right">
+						<button type="button" class="btn btn-success btn-sm" id="shareBtn">分享</button>
 						<input type="hidden" id="postId" th:value="${post.id}">
 						<button type="button" class="btn btn-danger btn-sm" id="topBtn"
 							th:text="${post.type.name() == 'ORDINARY' ? '置顶' : '取消置顶'}" sec:authorize="hasAnyAuthority('MODERATOR')">置顶</button>

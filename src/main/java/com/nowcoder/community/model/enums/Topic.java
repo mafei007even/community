@@ -33,7 +33,12 @@ public enum Topic implements ValueEnum<String> {
 	/**
 	 * 删帖事件
 	 */
-	Delete("delete");
+	Delete("delete"),
+
+	/**
+	 * 分享
+	 */
+	Share("share");
 
 	private final String value;
 

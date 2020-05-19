@@ -50,7 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						"/notice/**",
 						"/like",
 						"/follow",
-						"/unfollow"
+						"/unfollow",
+						"/discuss/delete"
 				).hasAnyAuthority(allLoginAuthorities)
 				.antMatchers(HttpMethod.POST,  "/discuss")
 				.hasAnyAuthority(allLoginAuthorities)
@@ -58,8 +59,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						"/discuss/top",
 						"/discuss/wonderful"
 				).hasAnyAuthority(UserType.MODERATOR.name())
-				.antMatchers("/discuss/delete")
-				.hasAnyAuthority(allLoginAuthorities)
 				.antMatchers(
 						"/discuss/restore",
 						"/data/**")

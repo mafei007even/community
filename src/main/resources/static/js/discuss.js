@@ -4,6 +4,7 @@ $(function () {
     $("#wonderfulBtn").click(setWonderful);
     $("#deleteBtn").click(setDelete);
     $("#restoreBtn").click(restorePost);
+    $("#shareBtn").click(sharePost);
 
 })
 
@@ -24,6 +25,42 @@ function errorHandler(data) {
         errors = data.responseJSON.message;
     }
     alert(errors);
+}
+
+var count = 1;
+
+function repeatGetImg(img) {
+    setTimeout(function () {
+        var originSrc = $(img).attr("src");
+        $(img).attr("src", originSrc + count++)
+    }, 1000);
+}
+
+function sharePost() {
+    var htmlUrl = location.href;
+
+    // 显示提示
+    $("#toastBody").text("正在生成分享图...")
+    $("#toast").toast("show");
+
+    $.ajax({
+        url: CONTEXT_PATH + "/share",
+        type: "get",
+        dataType: 'json',
+        data: {"htmlUrl": htmlUrl}
+    }).done(function (data) {
+
+        // x秒后,显示提示框
+        setTimeout(function () {
+            $("#toast").toast("hide");
+            $("#shareImg").attr("src", data.data + "?");
+            $("#resultModal").modal("show");
+        }, 1000);
+
+    }).fail(function (data) {
+        $("#toast").toast("hide");
+        errorHandler(data);
+    })
 }
 
 function setTop() {
