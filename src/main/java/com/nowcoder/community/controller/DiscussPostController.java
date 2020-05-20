@@ -18,6 +18,7 @@ import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.utils.CacheUtils;
 import com.nowcoder.community.utils.RedisKeyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -193,20 +194,18 @@ public class DiscussPostController {
 
             commentVoList.add(commentVO);
         }
-
-
         model.addAttribute("post", post);
         model.addAttribute("likeCount", likeCount);
         model.addAttribute("likeStatus", likeStatus);
         model.addAttribute("user", postUser);
         model.addAttribute("comments", commentVoList);
         model.addAttribute("page", page);
-
         return "site/discuss-detail";
     }
 
     /**
-     * 置顶/取消置顶，只允许系统版主操作
+     * 置顶/取消置顶，只允许系统管理员操作
+     * 置顶操作不需要更新权重，因为在查询时就会把置顶的排到上面
      *
      * @param postId
      * @return
@@ -217,7 +216,7 @@ public class DiscussPostController {
     public BaseResponse setTop(@RequestParam Integer postId, @RequestParam DiscussPostType type){
         discussPostService.updateType(postId, type);
 
-        // 更改后触发发帖事件，发帖事件没有 entityUserId 要通知的用户
+        // 更改后触发发帖事件，因为权重发送变法，要更新 kafka 中的索引数据
         Event event = Event.builder()
                 .topic(Topic.Publish)
                 .userId(UserHolder.get().getId())
@@ -225,6 +224,10 @@ public class DiscussPostController {
                 .entityId(postId)
                 .build();
         eventProducer.fireEvent(event);
+
+        // 此操作导致页面发生明显变化，要清除本地缓存
+        CacheUtils.POST_LIST_CACHE.invalidateAll();
+        log.warn(String.format("管理员【%s】 %s 了帖子: %d", UserHolder.get().getUsername(), type.name(), postId));
 
         return BaseResponse.ok(null);
     }
@@ -245,7 +248,7 @@ public class DiscussPostController {
         }
         discussPostService.updateStatus(postId, status);
 
-        // 更改后触发发帖事件，发帖事件没有 entityUserId 要通知的用户
+        // 更改后触发发帖事件，因为权重发送变法，要更新 kafka 中的索引数据
         Event event = Event.builder()
                 .topic(Topic.Publish)
                 .userId(UserHolder.get().getId())
@@ -254,9 +257,13 @@ public class DiscussPostController {
                 .build();
         eventProducer.fireEvent(event);
 
-        // 加精后重新计算权重
+        // 加精后重新计算权重，加入指定的redis key 中，等待定时任务处理
         String redisKey = RedisKeyUtils.getPostScoreKey();
         redisTemplate.opsForSet().add(redisKey, postId);
+
+        // 此操作导致页面发生明显变化，要清除本地缓存
+        CacheUtils.POST_LIST_CACHE.invalidateAll();
+        log.warn(String.format("版主【%s】 %s 了帖子: %d", UserHolder.get().getUsername(), status.name(), postId));
 
         return BaseResponse.ok(null);
     }
@@ -288,7 +295,6 @@ public class DiscussPostController {
             }
             discussPostService.updateStatus(postId, DiscussPostStatus.BLOCK);
         }
-
         // 触发删帖事件
         Event event = Event.builder()
                 .topic(Topic.Delete)
@@ -297,6 +303,12 @@ public class DiscussPostController {
                 .entityId(postId)
                 .build();
         eventProducer.fireEvent(event);
+
+        // 此操作导致页面发生明显变化，要清除本地缓存
+        CacheUtils.POST_LIST_CACHE.invalidateAll();
+        // 删除了的话缓存的帖子总数也清空
+        CacheUtils.POST_ROWS_CACHE.invalidateAll();
+        log.warn(String.format("用户/管理员【%s，id=%s】 删除了帖子: %d", userInfo.getUsername(), userId, postId));
 
         return BaseResponse.ok(null);
     }
@@ -314,6 +326,12 @@ public class DiscussPostController {
                 .entityId(postId)
                 .build();
         eventProducer.fireEvent(event);
+
+        // 此操作导致页面发生明显变化，要清除本地缓存
+        CacheUtils.POST_LIST_CACHE.invalidateAll();
+        // 恢复了的话缓存的帖子总数也清空
+        CacheUtils.POST_ROWS_CACHE.invalidateAll();
+        log.warn(String.format("管理员【%s】 恢复了帖子: %d", UserHolder.get().getUsername(), postId));
 
         return BaseResponse.ok(null);
     }

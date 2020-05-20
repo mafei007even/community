@@ -1,8 +1,10 @@
 package com.nowcoder.community.config;
 
 import com.nowcoder.community.quartz.PostScoreRefreshJob;
+import io.swagger.models.auth.In;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
@@ -15,6 +17,9 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 
 @Configuration
 public class QuartzConfig {
+
+	@Value("${postScoreRefreshInterval}")
+	private long postScoreRefreshInterval;
 
 	/**
 	 * 刷新帖子权重的任务
@@ -58,7 +63,7 @@ public class QuartzConfig {
 		factoryBean.setName("postScoreRefreshTrigger");
 		factoryBean.setGroup("communityTriggerGroup");
 		// 每 1 分钟触发一次
-		factoryBean.setRepeatInterval(1000 * 60 * 1);
+		factoryBean.setRepeatInterval(postScoreRefreshInterval);
 		// Trigger 需要存储 Job 的状态，这里配置用什么来存储
 		factoryBean.setJobDataMap(new JobDataMap());
 		return factoryBean;

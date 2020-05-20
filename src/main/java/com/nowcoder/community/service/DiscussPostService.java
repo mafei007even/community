@@ -6,7 +6,9 @@ import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.enums.DiscussPostStatus;
 import com.nowcoder.community.model.enums.DiscussPostType;
 import com.nowcoder.community.model.enums.OrderMode;
+import com.nowcoder.community.utils.CacheUtils;
 import com.nowcoder.community.utils.SensitiveFilter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.util.HtmlUtils;
@@ -20,24 +22,58 @@ import java.util.List;
  */
 
 @Service
+@Slf4j
 public class DiscussPostService {
 
-    private DiscussPostMapper discussPostMapper;
-
-    private SensitiveFilter sensitiveFilter;
+    private final DiscussPostMapper discussPostMapper;
+    private final SensitiveFilter sensitiveFilter;
 
     public DiscussPostService(DiscussPostMapper discussPostMapper, SensitiveFilter sensitiveFilter) {
         this.discussPostMapper = discussPostMapper;
         this.sensitiveFilter = sensitiveFilter;
     }
 
-
+    /**
+     * 调用地方：
+     *      访问首页按时间排序
+     *      按热门贴排序
+     *      查看用户的帖子
+     * 缓存只加在热门帖子页面，因为热门帖子是由定时调度来更新的，页面变化频率较低，可以做本地缓存
+     * 有影响的地方就是显示的评论数量可能会不正确，但用户点击帖子详情页时会查询，这时候评论数也就对了，这里加缓存不会很影响用户体验
+     * <p>
+     * 还有个影响就是如果加精、置顶、删除、恢复了从最热页面查看是没有的，但从最新页面查看却能看到，对页面影响很大，这里不太好
+     * 所以在加精、置顶、删除、恢复时清除缓存
+     *
+     * 访问首页按时间排序的话就不适合做缓存
+     *
+     * @param userId 0是查全部帖子，否则就是查指定 userId 的帖子
+     * @param offset
+     * @param limit
+     * @param orderMode
+     * @return
+     */
     public List<DiscussPost> findDiscussPosts(Integer userId, Integer offset, Integer limit, OrderMode orderMode){
+        if (userId == 0 && orderMode == OrderMode.HEAT) {
+            // offset + ":" + limit 是唯一的，可以作为缓存的 key
+            return CacheUtils.POST_LIST_CACHE.get(offset + ":" + limit);
+        }
+        log.debug("load post list from DB.");
         return discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
     }
 
-
+    /**
+     * 查询帖子数量，此数据对分页有影响，
+     * 对查询所有帖子时做本地缓存
+     * 新发的帖子就不会被计算进去，分页数不太对也没关系，等下次缓存过期了刷新时校正过来就好
+     * @param userId 0就是查所有的帖子数，否则就是查指定 userId 的帖子数
+     * @return
+     */
     public Integer findDiscussPostRows(Integer userId){
+        if (userId == 0) {
+            // key 就永远是 0
+            return CacheUtils.POST_ROWS_CACHE.get(userId);
+        }
+        log.debug("load post rows from DB.");
         return discussPostMapper.selectDiscussPostRows(userId);
     }
 
