@@ -43,6 +43,9 @@ public class ShareController {
 	@Value("${wk.image.storage}")
 	private String wkImageStorage;
 
+	@Value("${qiniu.bucket.share.url}")
+	private String shareBucketUrl;
+
 	public ShareController(EventProducer eventProducer) {
 		this.eventProducer = eventProducer;
 	}
@@ -63,22 +66,25 @@ public class ShareController {
 				.setData("suffix", ".png");
 		eventProducer.fireEvent(event);
 
+		String qiniuUrl = shareBucketUrl + "/" + fileName;
 		// 返回访问路径
-		return BaseResponse.ok("success", domain + contextPath + "/share/image/" + fileName);
+		return BaseResponse.ok("success", qiniuUrl);
 	}
 
+	/**
+	 * 使用七牛云存储
+	 * @param fileName
+	 * @param response
+	 */
+	@Deprecated
 	@GetMapping("share/image/{fileName}")
 	public void getShareImage(@PathVariable @NotBlank(message = "url不能为空") String fileName,
 							  HttpServletResponse response) {
-
 		try {
-
 			Path path = Paths.get(wkImageStorage, fileName + ".png");
-
 			if (Files.exists(path)) {
 				response.setContentType("image/png");
 				ServletOutputStream outputStream = response.getOutputStream();
-
 				Files.copy(path, outputStream);
 			} else{
 				response.setStatus(404);
