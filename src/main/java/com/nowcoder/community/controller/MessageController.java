@@ -200,6 +200,12 @@ public class MessageController {
 			log.warn(String.format("尝试删除非自己的会话消息，userId: %s, letterId: %s", userId, letterId));
 			return new BaseResponse(403, "forbidden", null);
 		}
+		// 更新
+		// 如果消息的发送方要删除自己发的私信，这条私信对发送方来说肯定是已读的，此时允许发送方删除
+		if (letter.getFromId().equals(userId)) {
+			messageService.deleteLetter(letter, userId);
+			return BaseResponse.ok("删除成功！");
+		}
 		//如果 status 为0未读状态，说明用户没有点开详情页，也就是使用脚本进行 delete msg ，此时就不允许 delete
 		if (letter.getStatus() == MessageStatus.UNREAD) {
 			log.warn(String.format("尝试删除自己的未读会话消息，userId: %s, letterId: %s", userId, letterId));
