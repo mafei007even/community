@@ -1,4 +1,6 @@
-var CONTEXT_PATH = "/community";
+// var CONTEXT_PATH = "/community";
+// 部署到 linux 使用域名访问，不需要子路径
+var CONTEXT_PATH = "";
 
 window.alert = function(message) {
 	if(!$(".alert-box").length) {

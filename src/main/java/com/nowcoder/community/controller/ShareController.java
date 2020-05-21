@@ -63,7 +63,7 @@ public class ShareController {
 				.build();
 		event.setData("htmlUrl", htmlUrl)
 				.setData("fileName", fileName)
-				.setData("suffix", ".png");
+				.setData("suffix", ".jpg");
 		eventProducer.fireEvent(event);
 
 		String qiniuUrl = shareBucketUrl + "/" + fileName;
@@ -81,9 +81,9 @@ public class ShareController {
 	public void getShareImage(@PathVariable @NotBlank(message = "url不能为空") String fileName,
 							  HttpServletResponse response) {
 		try {
-			Path path = Paths.get(wkImageStorage, fileName + ".png");
+			Path path = Paths.get(wkImageStorage, fileName + ".jpg");
 			if (Files.exists(path)) {
-				response.setContentType("image/png");
+				response.setContentType("image/jpeg");
 				ServletOutputStream outputStream = response.getOutputStream();
 				Files.copy(path, outputStream);
 			} else{

@@ -43,6 +43,11 @@ public class HomeController {
         this.templateEngine = templateEngine;
     }
 
+    @GetMapping("/")
+    public String root() {
+        return "forward:index";
+    }
+
     /**
      * 首页的帖子列表有两种排序方式，由 OrderMode 传递
      *   0-按日期排序
