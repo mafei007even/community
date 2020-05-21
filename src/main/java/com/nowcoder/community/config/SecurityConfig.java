@@ -61,7 +61,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				).hasAnyAuthority(UserType.MODERATOR.name())
 				.antMatchers(
 						"/discuss/restore",
-						"/data/**")
+						"/data/**",
+						"/actuator/**")
 				.hasAnyAuthority(UserType.ADMIN.name())
 				.anyRequest().permitAll()
 				.and().csrf().disable();
