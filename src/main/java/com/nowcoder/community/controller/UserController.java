@@ -120,6 +120,7 @@ public class UserController {
         // 更新 redis 缓存中的用户信息
         userInfo.setHeaderUrl(headerUrl);
         userService.saveUserInfo(userInfo, ticket);
+        log.info("用户userId: " + userInfo.getId() + " 更新了头像: " + headerUrl);
         return BaseResponse.ok("success");
     }
 

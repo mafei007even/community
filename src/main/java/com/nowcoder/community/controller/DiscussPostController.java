@@ -87,6 +87,7 @@ public class DiscussPostController {
         String redisKey = RedisKeyUtils.getPostScoreKey();
         redisTemplate.opsForSet().add(redisKey, post.getId());
 
+        log.info("用户userId: " + userInfo.getId() + " 发布了帖子id: " + post.getId());
         return BaseResponse.ok("发布成功");
     }
 

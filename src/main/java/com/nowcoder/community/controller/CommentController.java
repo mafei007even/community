@@ -9,10 +9,12 @@ import com.nowcoder.community.model.enums.Topic;
 import com.nowcoder.community.model.event.Event;
 import com.nowcoder.community.model.params.CommentParam;
 import com.nowcoder.community.model.support.UserHolder;
+import com.nowcoder.community.model.support.UserInfo;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.utils.RedisKeyUtils;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,7 @@ import javax.validation.Valid;
  * @date 2020/4/11 20:40
  */
 
+@Slf4j
 @Controller
 @RequestMapping("comment")
 public class CommentController {
@@ -49,6 +52,8 @@ public class CommentController {
 		Comment comment = commentParam.convertTo();
 		commentService.addComment(comment);
 
+		UserInfo userInfo = UserHolder.get();
+		Integer userId = userInfo.getId();
 		/**
 		 触发事件对应的用户，就是要通知的用户
 		 1. 如果这个评论是直接给帖子进行评论，那要通知的就是发帖者
@@ -73,7 +78,6 @@ public class CommentController {
 			default:
 		}
 
-		Integer userId = UserHolder.get().getId();
 		// 如果是对自己进行以上 3 种评论操作，那就不用再发通知自己通知自己了
 		if (!userId.equals(entityUserId)) {
 			// 触发评论事件
@@ -107,7 +111,7 @@ public class CommentController {
 			String redisKey = RedisKeyUtils.getPostScoreKey();
 			redisTemplate.opsForSet().add(redisKey, discussPostId);
 		}
-
+		log.info(String.format("用户【%s，id=%s】 【评论/回复评论】了帖子: %d", userInfo.getUsername(), userId, discussPostId));
 		return "redirect:/discuss/" + discussPostId;
 	}
 

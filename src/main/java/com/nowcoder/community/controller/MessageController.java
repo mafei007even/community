@@ -189,7 +189,8 @@ public class MessageController {
 			return new BaseResponse(400, "删除失败，消息不存在", null);
 		}
 
-		Integer userId = UserHolder.get().getId();
+		UserInfo userInfo = UserHolder.get();
+		Integer userId = userInfo.getId();
 
 		// 如果是系统通知类消息不给删除
 		if (letter.getFromId().equals(CommunityConstant.SYSTEM_USER_ID)) {
@@ -213,6 +214,7 @@ public class MessageController {
 		}
 
 		messageService.deleteLetter(letter, userId);
+		log.warn(String.format("用户【%s，id=%s】 删除了私信, id: %d", userInfo.getUsername(), userId, letterId));
 
 		return BaseResponse.ok("删除成功！");
 	}
@@ -226,7 +228,8 @@ public class MessageController {
 		if (notice == null) {
 			return new BaseResponse(400, "删除失败，消息不存在", null);
 		}
-		Integer userId = UserHolder.get().getId();
+		UserInfo userInfo = UserHolder.get();
+		Integer userId = userInfo.getId();
 
 		// 删除非系统通知
 		if (!notice.getFromId().equals(CommunityConstant.SYSTEM_USER_ID)) {
@@ -245,6 +248,7 @@ public class MessageController {
 		}
 
 		messageService.deleteNotice(notice);
+		log.warn(String.format("用户【%s，id=%s】 删除了系统通知, id: %d", userInfo.getUsername(), userId, noticeId));
 
 		return BaseResponse.ok("删除成功！");
 	}

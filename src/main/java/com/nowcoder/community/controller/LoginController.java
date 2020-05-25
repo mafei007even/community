@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -64,23 +65,25 @@ public class LoginController {
 
 
     @PostMapping("register")
-    public String register(Model model, User user) {
+    public String register(Model model, User user, HttpServletRequest request) {
 
         Map<String, Object> map = userService.register(user);
 
+        String ip = request.getRemoteHost();
         // 没有错误，注册成功
         if (CollectionUtils.isEmpty(map)) {
 
             model.addAttribute("msg", "注册成功，我们已经向您的邮箱发送了" +
                     "一封激活邮件，请尽快激活！");
             model.addAttribute("target", "/index");
-
+            log.info(String.format("ip: %s 注册了账号: User=%s", ip, user.toString()));
             return "site/operate-result";
         }
 
         // 注册出现错误
         model.addAttribute("usernameMsg", map.get("usernameMsg"));
         model.addAttribute("emailMsg", map.get("emailMsg"));
+        log.info(String.format("ip: %s 注册账号错误, User=%s, errMsg=%s", ip, user.toString(), map));
         return "site/register";
     }
 
@@ -130,7 +133,7 @@ public class LoginController {
     public String login(String username, String password,
                         String code, String captchaId,
                         @RequestParam(required = false, defaultValue = "false") Boolean remeberMe,
-                        Model model, HttpServletResponse response) {
+                        Model model, HttpServletResponse response, HttpServletRequest request) {
 
         // 检查验证码
         String captchaKey = RedisKeyUtils.getCaptchaKey(captchaId);
@@ -164,6 +167,8 @@ public class LoginController {
 
         model.addAttribute("usernameMsg", map.get("usernameMsg"));
         model.addAttribute("passwordMsg", map.get("passwordMsg"));
+        log.info(String.format("ip: %s 登陆账号失败, username=%s, password=%s, errMsg=%s",
+                request.getRemoteHost(), username, password, map));
 
         return "site/login";
     }

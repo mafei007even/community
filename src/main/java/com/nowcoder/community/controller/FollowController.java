@@ -15,6 +15,7 @@ import com.nowcoder.community.model.vo.Follower;
 import com.nowcoder.community.service.FollowService;
 import com.nowcoder.community.service.UserService;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * @date 2020/5/2 22:39
  */
 
+@Slf4j
 @Controller
 public class FollowController {
 
@@ -46,15 +48,20 @@ public class FollowController {
 	@ResponseBody
 	public BaseResponse<Object> follow(CommentEntityType entityType, Integer entityId) {
 		UserInfo userInfo = UserHolder.get();
-		if (userInfo.getId().equals(entityId)) {
+		Integer userId = userInfo.getId();
+		if (userId.equals(entityId)) {
 			return new BaseResponse<>(400, "不能自己关注自己！", null);
 		}
-		followService.follow(userInfo.getId(), entityType, entityId);
+		User targetUserId = userService.findUserById(entityId);
+		if (targetUserId == null) {
+			return new BaseResponse<>(400, "关注用户不存在！", null);
+		}
+		followService.follow(userId, entityType, entityId);
 
 		// 触发关注事件
 		Event event = Event.builder()
 				.topic(Topic.Follow)
-				.userId(userInfo.getId())
+				.userId(userId)
 				.entityType(entityType)
 				.entityId(entityId)
 				// 现在功能只能关注用户，entityId 就是要通知的用户id
@@ -64,6 +71,8 @@ public class FollowController {
 
 		// 发送通知
 		eventProducer.fireEvent(event);
+		log.info(String.format("用户【%s，id=%s】 关注了用户【%s，id=%s】",
+				userInfo.getUsername(), userId, targetUserId.getUsername(), targetUserId));
 
 		return BaseResponse.ok("已关注！");
 	}
@@ -73,7 +82,13 @@ public class FollowController {
 	@ResponseBody
 	public BaseResponse<Void> unfollow(CommentEntityType entityType, Integer entityId) {
 		UserInfo userInfo = UserHolder.get();
+		User targetUserId = userService.findUserById(entityId);
+		if (targetUserId == null) {
+			return new BaseResponse<>(400, "取消关注用户不存在！", null);
+		}
 		followService.unfollow(userInfo.getId(), entityType, entityId);
+		log.info(String.format("用户【%s，id=%s】 取消关注了用户【%s， id=%s】",
+				userInfo.getUsername(), userInfo.getId(), targetUserId.getUsername(), targetUserId));
 		return BaseResponse.ok("已取消关注！");
 	}
 
