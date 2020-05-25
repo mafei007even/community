@@ -88,4 +88,24 @@ public class CommentService {
         return commentMapper.selectByPrimaryKey(id);
     }
 
+    /**
+     * select * from comment
+     * where user_id = #{userId}
+     * and status = 0
+     * order by create_time desc
+     * limit offset, limit
+     *
+     * @param userId
+     * @param page
+     * @return
+     */
+    public List<Comment> findCommentsByUser(Integer userId, Page page) {
+        PageHelper.startPage(page.getCurrent(), page.getLimit(), "create_time desc");
+
+        Example example = new Example(Comment.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("userId", userId);
+        criteria.andEqualTo("status", 0);
+        return commentMapper.selectByExample(example);
+    }
 }

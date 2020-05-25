@@ -46,6 +46,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						"/user/setting",
 						"/user/upload",
 						"/user/header/url",
+						"/user/reply",
 						"/comment/add/**",
 						"/letter/**",
 						"/notice/**",
