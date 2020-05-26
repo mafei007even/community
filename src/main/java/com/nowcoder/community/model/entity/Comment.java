@@ -27,7 +27,7 @@ public class Comment {
 	/**
 	 * 如果这条评论是帖子的直接评论，评论对应帖子或课程的 id
 	 * <p>
-	 * 如果这条评论是评论的评论（不管是不是回复），那么entityId 就对应评论的id
+	 * 如果这条评论是评论的评论（不管是不是回复），那么entityId 就对应评论的id (最顶级评论的id)
 	 */
 	private Integer entityId;
 

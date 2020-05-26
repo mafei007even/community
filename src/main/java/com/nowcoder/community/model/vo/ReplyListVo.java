@@ -32,7 +32,7 @@ public class ReplyListVo {
 
 	/**
 	 * 如果这条评论是给评论进行评论 或 给评论进行回复的话，此字段有值
-	 * 为回复的那条评论
+	 * 为回复的那条评论对应的顶级评论，详见 comment 表设计
 	 */
 	private Comment target;
 

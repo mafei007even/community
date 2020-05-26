@@ -4,8 +4,10 @@ import com.github.pagehelper.PageHelper;
 import com.nowcoder.community.dao.CommentMapper;
 import com.nowcoder.community.model.dto.Page;
 import com.nowcoder.community.model.entity.Comment;
+import com.nowcoder.community.model.entity.DiscussPost;
 import com.nowcoder.community.model.enums.CommentEntityType;
 import com.nowcoder.community.utils.SensitiveFilter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,6 +23,7 @@ import java.util.List;
  * @date 2020/4/6 19:17
  */
 
+@Slf4j
 @Service
 public class CommentService {
 
@@ -57,20 +60,26 @@ public class CommentService {
     }
 
 
-    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public int addComment(Comment comment){
-
         Assert.notNull(comment, "参数不能为null");
 
         // 过滤敏感词
         comment.setContent(HtmlUtils.htmlEscape(comment.getContent()));
-        comment.setContent(sensitiveFilter.filter(comment.getContent()));
+
+        String originContent = comment.getContent();
+        String filterContent = sensitiveFilter.filter(originContent);
+        comment.setContent(filterContent);
 
         int rows = commentMapper.insertSelective(comment);
+        if (!originContent.equals(filterContent)) {
+            Integer postId = findPostIdOfComment(comment);
+            log.warn(String.format("用户【id=%s】发布含有敏感词的评论【commentId=%s, postId=%s】！",
+                    comment.getUserId(), comment.getId(), postId));
+        }
 
         // 更新帖子评论数量
         if (comment.getEntityType() == CommentEntityType.POST) {
-
             // 查询数量
             Example example = new Example(Comment.class);
             Example.Criteria criteria = example.createCriteria();
@@ -80,7 +89,6 @@ public class CommentService {
             // 更新
             discussPostService.updateCommentCount(comment.getEntityId(), count);
         }
-
         return rows;
     }
 
@@ -108,4 +116,15 @@ public class CommentService {
         criteria.andEqualTo("status", 0);
         return commentMapper.selectByExample(example);
     }
+
+    private Integer findPostIdOfComment(Comment comment) {
+        // 只有这个评论是给帖子进行评论时，对应的 entityId 才是帖子的 id
+        while (comment.getEntityType() != CommentEntityType.POST) {
+            // 回复的评论id
+            Integer replyCommentId = comment.getEntityId();
+            comment = this.findCommentById(replyCommentId);
+        }
+        return comment.getEntityId();
+    }
+
 }

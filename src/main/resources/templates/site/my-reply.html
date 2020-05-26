@@ -81,15 +81,24 @@
 					<h6><b class="square"></b> 回复的帖子(<span th:text="${page.rows}">379</span>)</h6>
 					<ul class="list-unstyled mt-4 pl-3 pr-3">
 						<li class="border-bottom pb-3 mt-4" th:each="replyListVo : ${replyListVos}">
-							<div class="font-size-16 text-info">
-								<a th:if="${replyListVo.post == null}" href="#" class="text-info">此贴已被删除！</a>
-
-								<a target="_blank" th:if="${replyListVo.post != null}" th:href="@{|/discuss/${replyListVo.post.id}|}"
-								   class="text-info" th:utext="${replyListVo.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
+							<div class="font-size-18 text-info">
+								<a target="_blank" th:href="@{|/discuss/${replyListVo.post.id}|}" class="text-info"
+								   th:utext="${replyListVo.post.status.name() == 'BLOCK' ? '此贴已被删除！' : replyListVo.post.content}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
 							</div>
-							<div class="mt-1 font-size-14"
-								 th:utext="${replyListVo.target == null ? replyListVo.reply.content : replyListVo.reply.content + ' 回复用户【' + replyListVo.targetUser.username + '】的评论：' + replyListVo.target.content}">
-								顶顶顶!								
+							<div class="mt-1 font-size-14" style="word-break: break-all;word-wrap: break-word;">
+
+								<i class="font-size-16" th:utext="${replyListVo.reply.content}">顶顶顶!</i>
+
+								<span th:if="${replyListVo.target != null}"><br></span>
+								<div class="m-2 p-2" style="background-color: #e3e3e3b5;" th:if="${replyListVo.target != null}">
+
+									<span th:utext="${replyListVo.targetUser == null ? ' 回复评论【' + replyListVo.target.content + '】' :
+									' 在评论【' + replyListVo.target.content + '】下回复用户: '}"></span>
+									<a th:if="${replyListVo.targetUser != null}" target="_blank" style="color: #4788b6"
+									   th:href="@{|/user/profile/${replyListVo.targetUser.id}|}" th:utext="${replyListVo.targetUser.username}"></a>
+
+								</div>
+
 							</div>
 							<div class="text-right font-size-12 text-muted">
 								赞 <i class="mr-3" th:text="${replyListVo.likeCount}">11</i> 回复于 <b th:text="${#dates.format(replyListVo.reply.createTime, 'yyyy-MM-dd HH:mm:ss')}">2019-04-15 10:10:10</b>

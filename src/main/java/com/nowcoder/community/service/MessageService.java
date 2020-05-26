@@ -81,8 +81,17 @@ public class MessageService {
 		Assert.notNull(message, "消息不能为空！");
 
 		message.setContent(HtmlUtils.htmlEscape(message.getContent()));
-		message.setContent(sensitiveFilter.filter(message.getContent()));
-		return messageMapper.insertSelective(message);
+		String originContent = message.getContent();
+		String filterContent = sensitiveFilter.filter(originContent);
+		message.setContent(filterContent);
+		int rows = messageMapper.insertSelective(message);
+
+		// 在插入数据之后记录日志，这样才能拿到回显的 id
+		if (!originContent.equals(filterContent)) {
+			log.warn(String.format("用户【id=%s】发送含有敏感词的私信【messageId=%s, conversationId=%s】！",
+					message.getFromId(), message.getId(), message.getConversationId()));
+		}
+		return rows;
 	}
 
 	/**

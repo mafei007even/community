@@ -320,29 +320,19 @@ public class UserController {
 					.map(comment -> {
 						ReplyListVo replyListVo = new ReplyListVo();
 
-						DiscussPost post = null;
-						switch (comment.getEntityType()){
-							case POST:
-								// 帖子是否被删除，被删了依然显示出评论，但是帖子显示：此贴已被删除
-								post = discussPostService.findDiscussPostById(comment.getEntityId());
-								if (post == null) {
-									return replyListVo;
-								}
-								break;
-							case COMMENT:
-								// 帖子是否被删除，被删了依然显示出评论，但是帖子显示：此贴已被删除
-								post = findPostOfComment(comment);
-								if (post == null) {
-									return replyListVo;
-								}
-								// 这条评论回复的评论
-								Comment repliedComment = commentService.findCommentById(comment.getEntityId());
-								replyListVo.setTarget(repliedComment);
-								replyListVo.setTargetUser(userService.findUserById(repliedComment.getUserId()));
-								break;
-							default:
-						}
+						// 帖子被删了依然显示出评论、点赞数、帖子url，但是帖子标题显示：此贴已被删除
+						// 普通用户点进去就是 404 页面，管理员点进去可以查看
+						DiscussPost post = findPostOfComment(comment);
 						replyListVo.setPost(post);
+
+						if (comment.getEntityType() == CommentEntityType.COMMENT) {
+							// 这条评论回复的评论
+							Comment repliedComment = commentService.findCommentById(comment.getEntityId());
+							replyListVo.setTarget(repliedComment);
+							if (comment.getTargetId() != 0) {
+								replyListVo.setTargetUser(userService.findUserById(comment.getTargetId()));
+							}
+						}
 						replyListVo.setReply(comment);
 						replyListVo.setLikeCount(likeService.findEntityLikeCount(CommentEntityType.COMMENT, comment.getId()));
 						return replyListVo;
@@ -355,6 +345,11 @@ public class UserController {
 		return "site/my-reply";
 	}
 
+	/**
+	 * 查找评论是在哪个帖子下面的，帖子被删了也能查到
+	 * @param comment
+	 * @return
+	 */
 	private DiscussPost findPostOfComment(Comment comment) {
 		// 只有这个评论是给帖子进行评论时，对应的 entityId 才是帖子的 id
 		while (comment.getEntityType() != CommentEntityType.POST) {
@@ -363,7 +358,7 @@ public class UserController {
 			comment = commentService.findCommentById(replyCommentId);
 		}
 		Integer postId = comment.getEntityId();
-		return discussPostService.findDiscussPostById(postId);
+		return discussPostService.findDiscussPostByIdAllowBlock(postId);
 	}
 
 }

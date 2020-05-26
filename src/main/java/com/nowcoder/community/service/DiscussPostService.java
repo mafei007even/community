@@ -91,10 +91,19 @@ public class DiscussPostService {
         post.setContent(HtmlUtils.htmlEscape(post.getContent()));
 
         // 过滤敏感词
-        post.setTitle(sensitiveFilter.filter(post.getTitle()));
-        post.setContent(sensitiveFilter.filter(post.getContent()));
+        String originTitle = post.getTitle();
+        String originContent = post.getContent();
+        String filterTitle = sensitiveFilter.filter(originTitle);
+        String filterContent = sensitiveFilter.filter(originContent);
+        post.setTitle(filterTitle);
+        post.setContent(filterContent);
 
-        return discussPostMapper.insertSelective(post);
+        int rows = discussPostMapper.insertSelective(post);
+        // 在插入数据之后记录日志，这样才能拿到回显的 postId
+        if (!originTitle.equals(filterTitle) || !originContent.equals(filterContent)) {
+            log.warn(String.format("用户【id=%s】发布含有敏感词的帖子【postId=%s】！", post.getUserId(), post.getId()));
+        }
+        return rows;
     }
 
     public DiscussPost findDiscussPostById(Integer postId) {
