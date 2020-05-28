@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -11,10 +11,12 @@
 <!--    <meta name="_csrf" th:content="${_csrf.token}">-->
 <!--    <meta name="_csrf_header" th:content="${_csrf.headerName}">-->
 
-    <link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
-    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" type="text/css"/>
-    <link rel="stylesheet" th:href="@{/css/global.css}"/>
-    <title>牛客网-首页</title>
+    <link rel="icon" th:href="@{|${staticDomain}/img/logo.png|}"/>
+    <link rel="stylesheet" th:href="@{|${staticDomain}/css/bootstrap.min.css|}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{|${staticDomain}/css/global.css|}"/>
+<!--    需要 kindeditor 的地方才加载这个 css-->
+    <link rel="stylesheet" th:href="@{|${staticDomain}/editor/themes/default/default.css|}" />
+    <title>微社区 - 首页</title>
 
 </head>
 <body>
@@ -25,7 +27,8 @@
             <!-- 导航 -->
             <nav class="navbar navbar-expand-lg navbar-dark">
                 <!-- logo -->
-                <a class="navbar-brand" th:href="@{/index}"></a>
+                <a th:style="|background: url('${staticDomain}/img/logo-v2.png') no-repeat;
+	                background-size: 147px 42px; width: 147px; height: 42px; margin: 5px 15px 5px 0;|" class="navbar-brand" th:href="@{/}"></a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse"
                         data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +38,7 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item ml-3 btn-group-vertical">
-                            <a class="nav-link" th:href="@{/index}">首页</a>
+                            <a class="nav-link" th:href="@{/}">首页</a>
                         </li>
                         <li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser != null}">
                             <a target="_blank" class="nav-link position-relative" th:href="@{/letter/list}">消息<span
@@ -85,14 +88,14 @@
                         <a th:class="|nav-link ${orderMode != null && orderMode.name() == 'HEAT' ? 'active' : ''}|"  th:href="@{/index(orderMode=1)}">最热</a>
                     </li>
                 </ul>
-                <button type="button" class="btn btn-primary btn-sm position-absolute rt-0" data-toggle="modal"
-                        th:if="${loginUser != null}" data-target="#publishModal">我要发布
+                <button id="iWantPublish" type="button" class="btn btn-primary btn-sm position-absolute rt-0" data-toggle="modal"
+                        th:if="${loginUser != null}" th:onclick="loadKEScript([[${staticDomain}]]);" data-target="#publishModal">我要发布
                 </button>
             </div>
             <!-- 弹出框 -->
-            <div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="publishModalLabel"
+            <div class="modal fade" id="publishModal" role="dialog" aria-labelledby="publishModalLabel"
                  aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-dialog modal-lg" role="document" style="max-width: 966px; width: 966px">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="publishModalLabel">新帖发布</h5>
@@ -108,7 +111,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="message-text" class="col-form-label">正文：</label>
-                                    <textarea class="form-control" id="message-text" rows="15"></textarea>
+                                    <textarea class="form-control" id="message-text" name="content" style="width:100%;height:300px;"></textarea>
                                 </div>
                             </form>
                         </div>
@@ -188,19 +191,19 @@
     </div>
 
     <!-- 尾部 -->
-    <footer class="bg-dark">
+    <footer class="bg-dark" th:fragment="footer">
         <div class="container">
             <div class="row">
                 <!-- 二维码 -->
                 <div class="col-4 qrcode">
-                    <img src="https://uploadfiles.nowcoder.com/app/app_download.png" class="img-thumbnail"
-                         style="width:136px;"/>
+                    <img th:src="@{|${staticDomain}/img/app.png|}" class="img-thumbnail"
+                         style="width:116px;"/>
                 </div>
                 <!-- 公司信息 -->
                 <div class="col-8 detail-info">
                     <div class="row">
                         <div class="col">
-                            <ul class="nav">
+                            <ul class="nav" id="footer_nav">
                                 <li class="nav-item">
                                     <a class="nav-link text-light" href="#">关于我们</a>
                                 </li>
@@ -209,9 +212,6 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-light" href="#">意见反馈</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-light" href="#">企业服务</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-light" href="#">联系我们</a>
@@ -229,19 +229,14 @@
                         <div class="col">
                             <ul class="nav btn-group-vertical company-info">
                                 <li class="nav-item text-white-50">
-                                    公司地址：北京市朝阳区大屯路东金泉时代3-2708北京牛客科技有限公司
+                                    公司地址：安徽省合肥市xxx路xxx号微社区xxxxxxx有限公司
                                 </li>
                                 <li class="nav-item text-white-50">
-                                    联系方式：010-60728802(电话)&nbsp;&nbsp;&nbsp;&nbsp;admin@nowcoder.com
+                                    联系方式：010-11111111(电话)&nbsp;&nbsp;&nbsp;&nbsp;Email：aatroxc007@gmail.com
                                 </li>
-                                <li class="nav-item text-white-50">
-                                    牛客科技©2018 All rights reserved
-                                </li>
-                                <li class="nav-item text-white-50">
-                                    京ICP备14055008号-4 &nbsp;&nbsp;&nbsp;&nbsp;
-                                    <img src="http://static.nowcoder.com/company/images/res/ghs.png"
-                                         style="width:18px;"/>
-                                    京公网安备 11010502036488号
+                                <li class="nav-item text-white-50" id="beian" >
+                                    微社区©2020 All rights reserved &nbsp;| &nbsp;
+                                    <a style="color: rgba(255,255,255,.8)" href="http://www.beian.miit.gov.cn" target="_blank">皖ICP备20000460号-1</a>
                                 </li>
                             </ul>
                         </div>
@@ -249,13 +244,52 @@
                 </div>
             </div>
         </div>
+
+        <script th:src="@{|${staticDomain}/js/jquery-3.3.1.min.js|}"></script>
+        <script th:src="@{|${staticDomain}/js/popper.min.js|}"></script>
+        <script th:src="@{|${staticDomain}/js/bootstrap.min.js|}"></script>
+        <script th:src="@{|${staticDomain}/js/global.js|}"></script>
     </footer>
 </div>
 
-<script th:src="@{/js/jquery-3.3.1.min.js}"></script>
-<script th:src="@{/js/popper.min.js}"></script>
-<script th:src="@{/js/bootstrap.min.js}"></script>
-<script th:src="@{/js/global.js}"></script>
-<script th:src="@{/js/index.js}"></script>
+<script th:src="@{|${staticDomain}/js/index.js|}"></script>
+<script>
+/*
+    $("#beian a").hover(function(){
+        $("#beian a").css("color", 'red')
+    },function(){
+        $("#beian a").css("color", "rgba(255,255,255,.8)")
+    });
+*/
+
+    function loadKE(){
+        // KindEditor.ready(function(K) {
+        //		window.editor = K.create('#message-text', {
+        window.editor = KindEditor.create('#message-text', {
+            resizeType : 1,
+            uploadJson : 'http://upload.qiniup.com',
+            allowPreviewEmoticons : true,
+            allowImageUpload : true,
+            items : [
+                'source', '|','fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline',
+                'removeformat', '|', 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist',
+                'insertunorderedlist', '|', 'emoticons', 'image', 'link']
+        });
+        // });
+    }
+
+    function loadKEScript(staticDomain) {
+        // 将 zh-CN.js  image.js 都整合进 kindeditor.js 中了
+        $.ajax({
+            url: staticDomain + "/editor/kindeditor.js",
+            dataType: "script",
+            cache: true
+        }).done(function() {
+            loadKE();
+        });
+
+    }
+
+</script>
 </body>
 </html>

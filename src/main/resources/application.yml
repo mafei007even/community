@@ -1,32 +1,8 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /community
+# profile
 spring:
-  thymeleaf:
-    cache: false
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/nowcoder_community?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
-    type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 2
-      idle-timeout: 30000
+  profiles:
+    active: dev
 
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.nowcoder.community.entity
-  configuration:
-    use-generated-keys: true
-    map-underscore-to-camel-case: true
-#logging:
-#  level:
-#    com:
-#      nowcoder:
-#        community:
-#          debug
-#  file:
-#    name: E:/project_study/nowcoder/community.log
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml
+# logback
