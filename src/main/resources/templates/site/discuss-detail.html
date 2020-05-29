@@ -278,7 +278,7 @@
 										</ul>
 										<div th:id="|huifu-${rvoStat.count}|" class="mt-4 collapse">
 
-											<form method="post" th:action="@{|/comment/add/${post.id}|}">
+											<form class="commentForm1" method="post" th:action="@{|/comment/add/${post.id}|}">
 												<div>
 													<input type="text" name="content" class="input-size" th:placeholder="|回复 @${rvo.user.username}|"/>
 													<input type="hidden" name="entityType" value="2">
@@ -297,7 +297,7 @@
 
 								<!-- 回复输入框 -->
 								<li class="pb-3 pt-3">
-									<form method="post" th:action="@{|/comment/add/${post.id}|}">
+									<form class="commentForm1" method="post" th:action="@{|/comment/add/${post.id}|}">
 										<div>
 											<input type="text" name="content" class="input-size" th:placeholder="|回复 @${cvo.user.username}|"/>
 											<input type="hidden" name="entityType" value="2">
@@ -330,7 +330,7 @@
 			</div>
 			<!-- 回帖输入 -->
 			<div class="container mt-3">
-				<form class="replyform" method="post" th:action="@{|/comment/add/${post.id}|}">
+				<form class="replyform commentForm2" method="post" th:action="@{|/comment/add/${post.id}|}">
 					<p class="mt-3">
 						<a name="replyform"></a>
 						<textarea placeholder="在这里畅所欲言你的看法吧!" name="content"></textarea>
@@ -433,6 +433,24 @@
 		});
 
 	}
+	$(function () {
+		$(".commentForm2").submit(function () {
+			var content = $(this).find("textarea").val().trim();
+			if (content === "") {
+				alert("评论不能为空！")
+				return false;
+			}
+			return true;
+		})
+		$(".commentForm1").submit(function () {
+			var content = $(this).find("input[type='text']").val().trim();
+			if (content === "") {
+				alert("回复不能为空！")
+				return false;
+			}
+			return true;
+		})
+	})
 
 </script>
 </html>
