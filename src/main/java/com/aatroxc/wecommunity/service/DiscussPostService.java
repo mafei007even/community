@@ -1,5 +1,6 @@
 package com.aatroxc.wecommunity.service;
 
+import com.aatroxc.wecommunity.utils.MailClient;
 import com.github.pagehelper.PageHelper;
 import com.aatroxc.wecommunity.dao.DiscussPostMapper;
 import com.aatroxc.wecommunity.model.entity.DiscussPost;
@@ -9,6 +10,7 @@ import com.aatroxc.wecommunity.model.enums.OrderMode;
 import com.aatroxc.wecommunity.utils.CacheUtils;
 import com.aatroxc.wecommunity.utils.SensitiveFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.util.HtmlUtils;
@@ -27,10 +29,15 @@ public class DiscussPostService {
 
     private final DiscussPostMapper discussPostMapper;
     private final SensitiveFilter sensitiveFilter;
+    private final MailClient mailClient;
 
-    public DiscussPostService(DiscussPostMapper discussPostMapper, SensitiveFilter sensitiveFilter) {
+    @Value("${spring.mail.username}")
+    private String systemEmail;
+
+    public DiscussPostService(DiscussPostMapper discussPostMapper, SensitiveFilter sensitiveFilter, MailClient mailClient) {
         this.discussPostMapper = discussPostMapper;
         this.sensitiveFilter = sensitiveFilter;
+        this.mailClient = mailClient;
     }
 
     /**
@@ -102,7 +109,9 @@ public class DiscussPostService {
         int rows = discussPostMapper.insertSelective(post);
         // 在插入数据之后记录日志，这样才能拿到回显的 postId
         if (!originTitle.equals(filterTitle) || !originContent.equals(filterContent)) {
-            log.warn(String.format("用户【id=%s】发布含有敏感词的帖子【postId=%s】！", post.getUserId(), post.getId()));
+            String warnMsg = String.format("用户【id=%s】发布含有敏感词的帖子【postId=%s】！", post.getUserId(), post.getId());
+            log.warn(warnMsg);
+            mailClient.sendMail(systemEmail, "发现敏感词", warnMsg);
         }
         return rows;
     }

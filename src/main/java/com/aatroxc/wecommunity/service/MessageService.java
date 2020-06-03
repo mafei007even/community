@@ -2,6 +2,7 @@ package com.aatroxc.wecommunity.service;
 
 import com.aatroxc.wecommunity.model.dto.Page;
 import com.aatroxc.wecommunity.model.enums.Topic;
+import com.aatroxc.wecommunity.utils.MailClient;
 import com.aatroxc.wecommunity.utils.SensitiveFilter;
 import com.github.pagehelper.PageHelper;
 import com.aatroxc.wecommunity.dao.MessageMapper;
@@ -9,6 +10,7 @@ import com.aatroxc.wecommunity.model.entity.Message;
 import com.aatroxc.wecommunity.model.enums.MessageStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -27,10 +29,15 @@ public class MessageService {
 
 	private final MessageMapper messageMapper;
 	private final SensitiveFilter sensitiveFilter;
+	private final MailClient mailClient;
 
-	public MessageService(MessageMapper messageMapper, SensitiveFilter sensitiveFilter) {
+	@Value("${spring.mail.username}")
+	private String systemEmail;
+
+	public MessageService(MessageMapper messageMapper, SensitiveFilter sensitiveFilter, MailClient mailClient) {
 		this.messageMapper = messageMapper;
 		this.sensitiveFilter = sensitiveFilter;
+		this.mailClient = mailClient;
 	}
 
 	public Message findMessageById(Integer msgId) {
@@ -88,8 +95,10 @@ public class MessageService {
 
 		// 在插入数据之后记录日志，这样才能拿到回显的 id
 		if (!originContent.equals(filterContent)) {
-			log.warn(String.format("用户【id=%s】发送含有敏感词的私信【messageId=%s, conversationId=%s】！",
-					message.getFromId(), message.getId(), message.getConversationId()));
+			String warnMsg = String.format("用户【id=%s】发送含有敏感词的私信【messageId=%s, conversationId=%s】！",
+					message.getFromId(), message.getId(), message.getConversationId());
+			log.warn(warnMsg);
+			// mailClient.sendMail(systemEmail, "发现敏感词", warnMsg);
 		}
 		return rows;
 	}

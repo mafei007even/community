@@ -1,5 +1,6 @@
 package com.aatroxc.wecommunity.service;
 
+import com.aatroxc.wecommunity.utils.MailClient;
 import com.github.pagehelper.PageHelper;
 import com.aatroxc.wecommunity.dao.CommentMapper;
 import com.aatroxc.wecommunity.model.dto.Page;
@@ -7,6 +8,7 @@ import com.aatroxc.wecommunity.model.entity.Comment;
 import com.aatroxc.wecommunity.model.enums.CommentEntityType;
 import com.aatroxc.wecommunity.utils.SensitiveFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,16 +28,19 @@ import java.util.List;
 @Service
 public class CommentService {
 
-    private CommentMapper commentMapper;
+    private final CommentMapper commentMapper;
+    private final SensitiveFilter sensitiveFilter;
+    private final DiscussPostService discussPostService;
+    private final MailClient mailClient;
 
-    private SensitiveFilter sensitiveFilter;
+    @Value("${spring.mail.username}")
+    private String systemEmail;
 
-    private DiscussPostService discussPostService;
-
-    public CommentService(CommentMapper commentMapper, SensitiveFilter sensitiveFilter, DiscussPostService discussPostService) {
+    public CommentService(CommentMapper commentMapper, SensitiveFilter sensitiveFilter, DiscussPostService discussPostService, MailClient mailClient) {
         this.commentMapper = commentMapper;
         this.sensitiveFilter = sensitiveFilter;
         this.discussPostService = discussPostService;
+        this.mailClient = mailClient;
     }
 
 
@@ -73,8 +78,10 @@ public class CommentService {
         int rows = commentMapper.insertSelective(comment);
         if (!originContent.equals(filterContent)) {
             Integer postId = findPostIdOfComment(comment);
-            log.warn(String.format("用户【id=%s】发布含有敏感词的评论【commentId=%s, postId=%s】！",
-                    comment.getUserId(), comment.getId(), postId));
+            String warnMsg = String.format("用户【id=%s】发布含有敏感词的评论【commentId=%s, postId=%s】！",
+                    comment.getUserId(), comment.getId(), postId);
+            log.warn(warnMsg);
+            mailClient.sendMail(systemEmail, "发现敏感词", warnMsg);
         }
 
         // 更新帖子评论数量
