@@ -57,7 +57,7 @@ public class JsonUtils {
             T t = MAPPER.readValue(jsonData, beanType);
             return t;
         } catch (Exception e) {
-            logger.error("json解析出错：" + jsonData, e);
+            logger.error("json解析出错：" + jsonData);
         }
         return null;
     }

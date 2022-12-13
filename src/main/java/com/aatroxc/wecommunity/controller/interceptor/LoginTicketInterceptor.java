@@ -61,9 +61,11 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
         // 添加到模板
         UserInfo userInfo = UserHolder.get();
         // modelAndView 可能是 null，因为访问的 handler 没有定义 model
-        if (userInfo != null && modelAndView != null) {
-            modelAndView.addObject("loginUser", userInfo);
+        if (modelAndView != null) {
             modelAndView.addObject("staticDomain", staticDomain);
+            if (userInfo != null) {
+                modelAndView.addObject("loginUser", userInfo);
+            }
         }
 
     }

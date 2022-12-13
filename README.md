@@ -1,2 +1,2 @@
 # community
-SpringBoot 开发社区
+SpringBoot 开发
